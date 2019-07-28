@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7D66B0F9-9C69-4037-9F88-40FBEAF5A591}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>OCR</RootNamespace>
+    <AssemblyName>OCR</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>ocr.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Views\Additions\Dialogs\AddRegionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\AddRegionDialog.Designer.cs">
+      <DependentUpon>AddRegionDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\CameraDeviceSelectDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\CameraDeviceSelectDialog.Designer.cs">
+      <DependentUpon>CameraDeviceSelectDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\ManageProfileDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\ManageProfileDialog.Designer.cs">
+      <DependentUpon>ManageProfileDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\PaperProfileDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\PaperProfileDialog.Designer.cs">
+      <DependentUpon>PaperProfileDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\ProfileSaveDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\ProfileSaveDialog.Designer.cs">
+      <DependentUpon>ProfileSaveDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\ScanDeviceSelectDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\ScanDeviceSelectDialog.Designer.cs">
+      <DependentUpon>ScanDeviceSelectDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\SelectFromDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\SelectFromDialog.Designer.cs">
+      <DependentUpon>SelectFromDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\SelectImageFromCameraDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Additions\Dialogs\SelectImageFromCameraDialog.Designer.cs">
+      <DependentUpon>SelectImageFromCameraDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Forms\ForTest\ShowImageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Forms\ForTest\ShowImageForm.Designer.cs">
+      <DependentUpon>ShowImageForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Forms\ForTest\ThresholdAdjustForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Forms\ForTest\ThresholdAdjustForm.Designer.cs">
+      <DependentUpon>ThresholdAdjustForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Forms\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Forms\MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\Forms\RegionSelectForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Views\Forms\RegionSelectForm.Designer.cs">
+      <DependentUpon>RegionSelectForm.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <None Include="Libraries\x86\gsdll32.lib" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <None Include="Resources\Data\dictionary\en_US.aff" />
+    <None Include="Resources\Data\dictionary\en_US.dic" />
+    <None Include="Resources\Data\dictionary\vi-DauMoi.aff" />
+    <None Include="Resources\Data\dictionary\vi-DauMoi.dic" />
+    <None Include="Resources\Data\tessdata\eng.traineddata" />
+    <None Include="Resources\Data\tessdata\vie.traineddata" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DAO\Interfaces\" />
+    <Folder Include="DAO\Locals\" />
+    <Folder Include="DAO\Remotes\" />
+    <Folder Include="Libraries\Handlers\" />
+    <Folder Include="Models\Locals\" />
+    <Folder Include="Models\Remotes\" />
+    <Folder Include="Processors\Handlers\" />
+    <Folder Include="Processors\Interfaces\" />
+    <Folder Include="Resources\Data\papersize\" />
+    <Folder Include="Resources\Data\profiles\" />
+    <Folder Include="Resources\Images\" />
+    <Folder Include="Utils\Enum\" />
+    <Folder Include="Utils\Extensions\UI\" />
+    <Folder Include="Utils\Helpers\" />
+    <Folder Include="Views\Additions\Components\" />
+    <Folder Include="Views\Additions\Controls\" />
+    <Folder Include="Views\Bases\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Libraries\x64\Hunspellx64.dll" />
+    <Content Include="Libraries\x86\DirectShowLib-2005.dll" />
+    <Content Include="Libraries\x86\gsdll32.dll" />
+    <Content Include="Libraries\x86\Hunspellx86.dll" />
+    <Content Include="ocr.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
