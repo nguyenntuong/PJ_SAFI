@@ -10,13 +10,19 @@ namespace OCR.Models.Locals
     [Serializable]
     public class ROI
     {
-        public const int Acc = 1000;
+        #region static
+        public const int MINIMUNSIZE = 5;
+        public const int Accuracy = 1000;
         public static ROI Empty => null;
+        #endregion
+
+        #region instance
         public string RegionName { get; set; }
         public Rectangle RegionRectangle { get; set; }
         public string Language { get; set; }
         public string RegexPattern { get; set; }
         public string RegexPatternSpecialChar { get; set; }
+
         public ROI(string name, string lang, Rectangle rectangle, string regexpattern, string specialchar)
         {
             RegexPattern = regexpattern ?? "";
@@ -55,5 +61,6 @@ namespace OCR.Models.Locals
         {
             return $"{RegionName} : {Language} : {{{RegionRectangle.ToString()}}}";
         }
+        #endregion
     }
 }

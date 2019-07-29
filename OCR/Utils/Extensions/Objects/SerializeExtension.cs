@@ -34,7 +34,7 @@ namespace OCR.Utils.Extensions.Objects
         /// <typeparam name="T">Kiểu của Object trả về sau khi DeSerialize</typeparam>
         /// <param name="arrBytes">Chuổi byte</param>
         /// <returns></returns>
-        public static T DeSerialize<T>(byte[] arrBytes)
+        public static T DeSerialize<T>(this byte[] arrBytes)
         {
             using (var memStream = new MemoryStream())
             {
@@ -51,7 +51,7 @@ namespace OCR.Utils.Extensions.Objects
                 catch (ArgumentNullException e)
                 {
                     Debug.WriteLine(e.Message);
-                    return default;
+                    throw new ArgumentNullException(nameof(arrBytes));
                 }
             }
         }

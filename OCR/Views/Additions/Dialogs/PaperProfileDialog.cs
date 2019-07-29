@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using OCR.Models.Locals;
 using OCR.Utils.Extensions.UIs;
+using OCR.DAO.Interfaces;
+using OCR.DAO.Locals;
 
 namespace OCR.Views.Additions.Dialogs
 {
     public partial class PaperProfileDialog : Form
     {
+        #region static
         public static DialogResult ShowCustomDialog()
         {
             PaperProfileDialog dialog = new PaperProfileDialog();
@@ -25,7 +28,11 @@ namespace OCR.Views.Additions.Dialogs
             PaperProfileDialog dialog = new PaperProfileDialog(paperProfile);
             return dialog.ShowDialog();
         }
-
+        #endregion
+        #region instance
+        #region dependencyinjection
+        private readonly IPaperResource _paperResource = PaperResource.DefaultInstance();
+        #endregion
         /// <summary>
         /// Đang ở chế độ chỉnh sửa hoặc tạo mới, để điều khiển hành vi btn xác nhận
         /// </summary>
@@ -67,7 +74,7 @@ namespace OCR.Views.Additions.Dialogs
             }
             else
             {
-                cbb_PaperProfile.DataSource = PaperResourceSupport.Profiles;
+                cbb_PaperProfile.UpdateUI(_paperResource.Profiles);
             }
         }
 
@@ -148,7 +155,7 @@ namespace OCR.Views.Additions.Dialogs
             _selectedPaperProfile.Name = nameProfile;
             _selectedPaperProfile.Width = width;
             _selectedPaperProfile.Height = height;
-            PaperResourceSupport.AddOrUpdatePaperProfile(_selectedPaperProfile);
+            _paperResource.AddOrUpdatePaperProfile(_selectedPaperProfile);
             MessageBox.Show("Thao tác thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             if (_createCommand)
             {
@@ -157,7 +164,7 @@ namespace OCR.Views.Additions.Dialogs
             }
             else
             {
-                cbb_PaperProfile.UpdateUI(PaperResourceSupport.Profiles, nameProfile);
+                cbb_PaperProfile.UpdateUI(_paperResource.Profiles, nameProfile);
             }
         }
 
@@ -166,7 +173,7 @@ namespace OCR.Views.Additions.Dialogs
             var cbb = sender as ComboBox;
             if (cbb.SelectedItem != null)
             {
-                _selectedPaperProfile = PaperResourceSupport.GetPaperProfile(cbb_PaperProfile.SelectedItem.ToString());
+                _selectedPaperProfile = _paperResource.GetPaperProfile(cbb_PaperProfile.SelectedItem.ToString());
                 if (_selectedPaperProfile != null)
                 {
                     btn_Edit.Enabled = true;
@@ -217,8 +224,9 @@ namespace OCR.Views.Additions.Dialogs
             {
                 return;
             }
-            PaperResourceSupport.DeletePaperProfile(_selectedPaperProfile);
-            cbb_PaperProfile.UpdateUI(PaperResourceSupport.Profiles);
+            _paperResource.DeletePaperProfile(_selectedPaperProfile);
+            cbb_PaperProfile.UpdateUI(_paperResource.Profiles);
         }
+        #endregion
     }
 }

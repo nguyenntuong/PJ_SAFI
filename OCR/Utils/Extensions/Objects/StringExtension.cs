@@ -13,5 +13,10 @@ namespace OCR.Utils.Extensions.Objects
         {
             return File.Exists(path);
         }
+
+        public static bool CheckIfIsFolderAndExist(this string path)
+        {
+            return Directory.Exists(path);
+        }
     }
 }

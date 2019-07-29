@@ -38,6 +38,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>OCR.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,6 +48,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>OCR.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>ocr.ico</ApplicationIcon>
@@ -70,15 +72,46 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DAO\Interfaces\IHunspellDictionaryLanguages.cs" />
+    <Compile Include="DAO\Interfaces\IPaperResource.cs" />
+    <Compile Include="DAO\Interfaces\IROIProfilesResource.cs" />
+    <Compile Include="DAO\Interfaces\ITempFilesResource.cs" />
+    <Compile Include="DAO\Interfaces\ITesseractLanguages.cs" />
+    <Compile Include="DAO\Locals\HunspellDictionaryLanguages.cs" />
+    <Compile Include="DAO\Locals\PaperResource.cs" />
+    <Compile Include="DAO\Locals\ROIProfilesResource.cs" />
+    <Compile Include="DAO\Locals\TempFilesImageResource.cs" />
+    <Compile Include="DAO\Locals\TempFilesScannerResource.cs" />
+    <Compile Include="DAO\Locals\TesseractLanguages.cs" />
+    <Compile Include="Libraries\Handlers\GhostScriptHandler.cs" />
+    <Compile Include="Libraries\Handlers\HunspellHandler.cs" />
     <Compile Include="Models\Locals\PaperProfile.cs" />
     <Compile Include="Models\Locals\ROI.cs" />
     <Compile Include="Models\Locals\ROIProfile.cs" />
+    <Compile Include="DAO\Locals\AppConfig.cs" />
+    <Compile Include="DAO\Interfaces\IAppConfig.cs" />
+    <Compile Include="Processors\Handlers\CImage.cs" />
+    <Compile Include="Processors\Handlers\DetectPaperArea.cs" />
+    <Compile Include="Processors\Handlers\HunspellWraper.cs" />
+    <Compile Include="Processors\Handlers\OCRWraper.cs" />
+    <Compile Include="Processors\Interfaces\IHunspellWraper.cs" />
+    <Compile Include="Processors\Interfaces\ILazy.cs" />
+    <Compile Include="Processors\Interfaces\IOCR.cs" />
+    <Compile Include="Processors\Handlers\Pdf2Image.cs" />
+    <Compile Include="Processors\Interfaces\ICImage.cs" />
+    <Compile Include="Processors\Interfaces\IDetectPaperArea.cs" />
+    <Compile Include="Processors\Interfaces\IModifyImage.cs" />
+    <Compile Include="Processors\Interfaces\IOCRROI.cs" />
+    <Compile Include="Processors\Interfaces\IPdf2Image.cs" />
     <Compile Include="Utils\Enum\CustomDialogResult.cs" />
+    <Compile Include="Utils\Enum\InputMode.cs" />
     <Compile Include="Utils\Extensions\Objects\SerializeExtension.cs" />
     <Compile Include="Utils\Extensions\Objects\StringExtension.cs" />
     <Compile Include="Utils\Extensions\Structs\RectangleExtension.cs" />
     <Compile Include="Utils\Extensions\UIs\ControlExtension.cs" />
     <Compile Include="Utils\Extensions\UIs\ListControlExtension.cs" />
+    <Compile Include="Utils\Helpers\DriverControls\CameraControl.cs" />
+    <Compile Include="Utils\Helpers\DriverControls\WIAScannerControl.cs" />
     <Compile Include="Views\Additions\Dialogs\AddRegionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -165,9 +198,13 @@
     <EmbeddedResource Include="Views\Forms\ForTest\ThresholdAdjustForm.resx">
       <DependentUpon>ThresholdAdjustForm.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="Libraries\x86\gsdll32.lib">
+    <Content Include="Libraries\x86\gsdll32.lib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
+    <EmbeddedResource Include="Views\Forms\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="OCR.ruleset" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -192,17 +229,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DAO\Interfaces\" />
-    <Folder Include="DAO\Locals\" />
     <Folder Include="DAO\Remotes\" />
-    <Folder Include="Libraries\Handlers\" />
     <Folder Include="Models\Remotes\" />
-    <Folder Include="Processors\Handlers\" />
-    <Folder Include="Processors\Interfaces\" />
     <Folder Include="Resources\Data\papersize\" />
     <Folder Include="Resources\Data\profiles\" />
     <Folder Include="Resources\Images\" />
-    <Folder Include="Utils\Helpers\DriverControls\" />
     <Folder Include="Views\Additions\Components\" />
     <Folder Include="Views\Additions\Controls\" />
     <Folder Include="Views\Bases\" />
@@ -260,6 +291,17 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="WIA">
+      <Guid>{94A0E92D-43C0-494E-AC29-FD45948A5221}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

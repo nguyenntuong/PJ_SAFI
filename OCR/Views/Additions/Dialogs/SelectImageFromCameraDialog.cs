@@ -11,13 +11,16 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using OCR.Processors.Handlers;
+using OCR.Processors.Interfaces;
 using OCR.Utils.Extensions.UIs;
 
 namespace OCR.Views.Additions.Dialogs
 {
     public partial class SelectImageFromCameraDialog : Form
     {
-        public static DialogResult ShowCustomDialog(out Image<Bgr, byte> img)
+        #region static
+        public static DialogResult ShowCustomDialog(out IImage img)
         {
             using (SelectImageFromCameraDialog dialog = new SelectImageFromCameraDialog())
             {
@@ -26,7 +29,11 @@ namespace OCR.Views.Additions.Dialogs
                 return res;
             }
         }
-
+        #endregion
+        #region instance
+        #region dependencyinjection
+        private readonly IDetectPaperArea _detectPaper = DetectPaperArea.MakeInstance();
+        #endregion
         private SelectImageFromCameraDialog()
         {
             InitializeComponent();
@@ -35,9 +42,9 @@ namespace OCR.Views.Additions.Dialogs
         public int CamIndex { get; private set; }
 
 
-        private (Image<Bgr, byte> imgOriginal, Image<Bgr, byte> imgDraw, RotatedRect rotatedRect) _resultCache = (null, null, RotatedRect.Empty);
+        private (IImage imgOriginal, IImage imgDrawed, RotatedRect rotated) _resultCache = (null, null, RotatedRect.Empty);
         private bool _pauseVideoCapture = false;
-        private Image<Bgr, byte> _image;
+        private IImage _image;
 
         private void BackgroundWorkerForVideoCapture_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -63,10 +70,10 @@ namespace OCR.Views.Additions.Dialogs
                         capture.Read(m);
                         try
                         {
-                            _resultCache = ImageSupport.DetectAndDrawPaperArea(m, _resultCache.rotatedRect);
+                            _resultCache = _detectPaper.DetectAndDrawPaperArea(m, _resultCache.rotated);
                             this.InvokeOnUIThreadSync(() =>
                             {
-                                pictureBox_ImgPreview.Image = _resultCache.imgDraw.Bitmap;
+                                pictureBox_ImgPreview.Image = _resultCache.imgDrawed.Bitmap;
                             });
                         }
                         catch (InvalidOperationException ex)
@@ -123,7 +130,7 @@ namespace OCR.Views.Additions.Dialogs
                 return;
             }
             _pauseVideoCapture = true;
-            var paperArea = ImageSupport.ExtractPaperArea(_resultCache.imgOriginal, _resultCache.rotatedRect);
+            var paperArea = _detectPaper.ExtractPaperArea(_resultCache.imgOriginal, _resultCache.rotated);
             if (paperArea == null)
             {
                 MessageBox.Show("Không tìm thấy.", "Không thể tìm thấy khu vực nhận dạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -150,5 +157,6 @@ namespace OCR.Views.Additions.Dialogs
             DialogResult = DialogResult.OK;
             this.Close();
         }
+        #endregion
     }
 }

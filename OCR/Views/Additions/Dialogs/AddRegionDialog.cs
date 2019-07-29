@@ -9,17 +9,24 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using OCR.Models.Locals;
 using OCR.Utils.Extensions.UIs;
+using OCR.DAO.Interfaces;
+using OCR.DAO.Locals;
 
 namespace OCR.Views.Additions.Dialogs
 {
     public partial class AddRegionDialog : Form
     {
+        #region static
         public static DialogResult ShowCustomDialog(List<ROI> currentList, ROI region)
         {
             AddRegionDialog form = new AddRegionDialog(currentList, region);
             return form.ShowDialog();
         }
-
+        #endregion
+        #region instance
+        #region dependencyinjection
+        private readonly ITesseractLanguages _tesseractLanguages = TesseractLanguages.DefaultInstance();
+        #endregion
         private ROI _regionInfer;
         private List<ROI> _currentRegionList;
 
@@ -34,7 +41,7 @@ namespace OCR.Views.Additions.Dialogs
         {
             txt_Identifer.Text = _regionInfer.RegionName;
             txt_RectRegion.Text = _regionInfer.RegionRectangle.ToString();
-            cbb_Language.UpdateUI(TesseractLangSupport.Languages, _regionInfer.Language);
+            cbb_Language.UpdateUI(_tesseractLanguages.Languages, _regionInfer.Language);
         }
 
         private void Btn_Accept_Click(object sender, EventArgs e)
@@ -94,5 +101,6 @@ namespace OCR.Views.Additions.Dialogs
                 checkBox_09.Checked = checkBox_AZaz.Checked = true;
             }
         }
+        #endregion
     }
 }

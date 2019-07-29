@@ -11,11 +11,13 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Emgu.CV;
 using OCR.Utils.Extensions.UIs;
+using OCR.Utils.Helpers.DriverControls;
 
 namespace OCR.Views.Additions.Dialogs
 {
     public partial class CameraDeviceSelectDialog : Form
     {
+        #region static
         public static DialogResult ShowCustomDialog(out int camIndex)
         {
             camIndex = -1;
@@ -27,6 +29,8 @@ namespace OCR.Views.Additions.Dialogs
                 return diRes;
             }
         }
+        #endregion
+        #region instance
         private CameraDeviceSelectDialog()
         {
             InitializeComponent();
@@ -123,5 +127,6 @@ namespace OCR.Views.Additions.Dialogs
             if (backgroundWorkerCamPreview.IsBusy)
                 backgroundWorkerCamPreview.CancelAsync();
         }
+        #endregion
     }
 }

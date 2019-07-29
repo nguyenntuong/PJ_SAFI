@@ -7,11 +7,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using OCR.Utils.Extensions.UIs;
+using OCR.Utils.Helpers.DriverControls;
 
 namespace OCR.Views.Additions.Dialogs
 {
     public partial class ScanDeviceSelectDialog : Form
     {
+        #region static
         public static DialogResult ShowCustomDialog(out string scannerID)
         {
             scannerID = "";
@@ -23,7 +26,8 @@ namespace OCR.Views.Additions.Dialogs
                 return diRes;
             }
         }
-
+        #endregion
+        #region instance
         private ScanDeviceSelectDialog()
         {
             InitializeComponent();
@@ -31,7 +35,7 @@ namespace OCR.Views.Additions.Dialogs
 
         private void ScanDeviceSelectDialog_Load(object sender, EventArgs e)
         {
-            var devices = WIAScanner.GetDevices();
+            var devices = WIAScannerControl.GetDevices();
             cbb_ScanDeviceLists.UpdateUI(devices, devices.Count > 0 ? devices[0] : null);
         }
 
@@ -53,7 +57,7 @@ namespace OCR.Views.Additions.Dialogs
             SetDefaultUI();
             if (cbb.SelectedItem != null)
             {
-                var properties = WIAScanner.GetDevicesProperty(cbb.SelectedItem.ToString().Trim());
+                var properties = WIAScannerControl.GetDevicesProperty(cbb.SelectedItem.ToString().Trim());
                 if (properties != null)
                 {
                     foreach (var p in properties)
@@ -68,5 +72,6 @@ namespace OCR.Views.Additions.Dialogs
         {
             lst_ScanProperties.Items.Clear();
         }
+        #endregion
     }
 }

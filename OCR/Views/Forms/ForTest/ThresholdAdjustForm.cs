@@ -12,8 +12,8 @@ namespace OCR.Views.Forms.ForTest
 {
     public partial class ThresholdAdjustForm : Form
     {
-        private Action<int> _action;
-        public ThresholdAdjustForm(Action<int> ThresholdFromAdjustChange)
+        private Action<object, int> _action;
+        public ThresholdAdjustForm(Action<object, int> ThresholdFromAdjustChange)
         {
             InitializeComponent();
             _action = ThresholdFromAdjustChange;
@@ -22,7 +22,7 @@ namespace OCR.Views.Forms.ForTest
         private void TrackBar1_ValueChanged(object sender, EventArgs e)
         {
             lbl_ThresholdValue.Text = trackBar1.Value.ToString();
-            _action.Invoke(trackBar1.Value);
+            _action.Invoke(sender, trackBar1.Value);
         }
     }
 }

@@ -9,17 +9,26 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using OCR.Models.Locals;
 using OCR.Utils.Extensions.UIs;
+using OCR.DAO.Interfaces;
+using OCR.DAO.Locals;
+using Emgu.CV;
 
 namespace OCR.Views.Additions.Dialogs
 {
     public partial class ManageProfileDialog : Form
     {
+        #region static
         public static DialogResult ShowCustomDialog()
         {
             ManageProfileDialog dialog = new ManageProfileDialog();
             return dialog.ShowDialog();
         }
-
+        #endregion
+        #region instance
+        #region dependencyinjection
+        private readonly IROIProfilesResource _regionProfiles = ROIProfilesResource.DefaultInstance();
+        private readonly ITempFilesResource<IImage> _tempFiles = TempFilesImageResource<IImage>.DefaultInstance();
+        #endregion
         private ROIProfile _selectedRegionProfile = null;
 
         private ManageProfileDialog()
@@ -29,7 +38,7 @@ namespace OCR.Views.Additions.Dialogs
 
         private void ManageProfileDialog_Load(object sender, EventArgs e)
         {
-            lst_Profiles.UpdateUI(RegionProfilesResourceSupport.Profiles);
+            lst_Profiles.UpdateUI(_regionProfiles.Profiles);
         }
 
         private void RestoreDefaultFormState()
@@ -52,7 +61,7 @@ namespace OCR.Views.Additions.Dialogs
             var lst = sender as ListBox;
             if (lst.SelectedItem != null)
             {
-                _selectedRegionProfile = RegionProfilesResourceSupport.GetRegionProfile(lst.SelectedItem.ToString());
+                _selectedRegionProfile = _regionProfiles.GetRegionProfile(lst.SelectedItem.ToString());
                 if (_selectedRegionProfile != null)
                 {
                     txt_ProfileName.Text = _selectedRegionProfile.Name;
@@ -66,7 +75,7 @@ namespace OCR.Views.Additions.Dialogs
                 else
                 {
                     MessageBox.Show("Không thể tải lên cấu hình này.", "Lỗi.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    lst_Profiles.UpdateUI(RegionProfilesResourceSupport.Profiles);
+                    lst_Profiles.UpdateUI(_regionProfiles.Profiles);
                     RestoreDefaultFormState();
                 }
             }
@@ -84,9 +93,9 @@ namespace OCR.Views.Additions.Dialogs
             {
                 return;
             }
-            TempFilesControl.DeleteFile(_selectedRegionProfile.TemplateFile);
-            RegionProfilesResourceSupport.DeleteRegionProfile(_selectedRegionProfile);
-            lst_Profiles.UpdateUI(RegionProfilesResourceSupport.Profiles);
+            _tempFiles.DeleteFile(_selectedRegionProfile.TemplateFile);
+            _regionProfiles.DeleteRegionProfile(_selectedRegionProfile);
+            lst_Profiles.UpdateUI(_regionProfiles.Profiles);
             RestoreDefaultFormState();
         }
 
@@ -99,8 +108,8 @@ namespace OCR.Views.Additions.Dialogs
                 return;
             }
             _selectedRegionProfile.Name = txt_ProfileName.Text.Trim();
-            RegionProfilesResourceSupport.AddOrUpdateRegionProfile(_selectedRegionProfile);
-            lst_Profiles.UpdateUI(RegionProfilesResourceSupport.Profiles, _selectedRegionProfile.Name);
+            _regionProfiles.AddOrUpdateRegionProfile(_selectedRegionProfile);
+            lst_Profiles.UpdateUI(_regionProfiles.Profiles, _selectedRegionProfile.Name);
         }
 
         private void Txt_ProfileName_TextChanged(object sender, EventArgs e)
@@ -123,5 +132,6 @@ namespace OCR.Views.Additions.Dialogs
             DialogResult = DialogResult.OK;
             this.Close();
         }
+        #endregion
     }
 }

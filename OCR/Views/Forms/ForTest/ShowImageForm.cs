@@ -15,6 +15,7 @@ namespace OCR.Views.Forms.ForTest
 {
     public partial class ShowImageForm : Form
     {
+        #region instance
         private IImage _image = null;
         private List<ROI> _regions = null;
         public ShowImageForm(IImage image)
@@ -42,5 +43,6 @@ namespace OCR.Views.Forms.ForTest
                 pictureBox1.Image = _image.Bitmap;
             }
         }
+        #endregion
     }
 }

@@ -13,6 +13,7 @@ namespace OCR.Views.Additions.Dialogs
 {
     public partial class SelectFromDialog : Form
     {
+        #region static
         public static CustomDialogResult ShowCustomDialog()
         {
             SelectFromDialog dialog = new SelectFromDialog();
@@ -20,6 +21,8 @@ namespace OCR.Views.Additions.Dialogs
             return dialog._selectResult;
         }
 
+        #endregion
+        #region instance
         private CustomDialogResult _selectResult = CustomDialogResult.Cancel;
 
         private SelectFromDialog()
@@ -49,5 +52,6 @@ namespace OCR.Views.Additions.Dialogs
             _selectResult = CustomDialogResult.VideoCapture;
             this.Close();
         }
+        #endregion
     }
 }
