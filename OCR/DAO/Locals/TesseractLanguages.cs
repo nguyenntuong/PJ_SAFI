@@ -14,7 +14,7 @@ namespace OCR.DAO.Locals
         #region static
         private static object _locker = new object();
         private static TesseractLanguages _instance = null;
-        public static TesseractLanguages DefaultInstance()
+        public static ITesseractLanguages DefaultInstance()
         {
             if (_instance == null)
             {

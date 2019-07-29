@@ -15,7 +15,7 @@ namespace OCR.DAO.Locals
         #region static
         private static object _locker = new object();
         private static HunspellDictionaryLanguages _instance = null;
-        public static HunspellDictionaryLanguages DefaultInstance()
+        public static IHunspellDictionaryLanguages DefaultInstance()
         {
             if (_instance == null)
             {

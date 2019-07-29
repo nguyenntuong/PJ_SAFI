@@ -15,7 +15,7 @@ namespace OCR.DAO.Locals
         #region static
         private static object _locker = new object();
         private static ROIProfilesResource _instance = null;
-        public static ROIProfilesResource DefaultInstance()
+        public static IROIProfilesResource DefaultInstance()
         {
             if (_instance == null)
             {
