@@ -948,6 +948,10 @@ namespace OCR.Views.Forms
                 });
                 image.Release();
             }
+            this.InvokeOnUIThreadASync(() =>
+            {
+                pictureBox_ScanImage.Image = _images[_currentImageIndex].GetOriginalImage().Bitmap;
+            });
         }
 
         private void backgroundWorkerForOCR_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
