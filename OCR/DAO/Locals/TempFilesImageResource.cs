@@ -59,16 +59,16 @@ namespace OCR.DAO.Locals
             {
                 throw new Exception("Cant save file.");
             }
-            var fileName = Path.GetRandomFileName() + ".bmp";
+            var fileName = Path.GetRandomFileName() + ".png";
             var path = Path.Combine(_path, fileName);
             while (File.Exists(path))
             {
-                fileName = Path.GetRandomFileName() + ".bmp";
+                fileName = Path.GetRandomFileName() + ".png";
                 path = Path.Combine(_path, fileName);
             }
             try
             {
-                ob.Bitmap.Save(path, ImageFormat.Bmp);
+                ob.Bitmap.Save(path, ImageFormat.Png);
                 return fileName;
             }
             catch

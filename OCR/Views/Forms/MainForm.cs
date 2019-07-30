@@ -724,12 +724,12 @@ namespace OCR.Views.Forms
                         if (Pdf2Image.FileTypeSupport.Contains(ext))
                         {
                             IPdf2Image convert = Pdf2Image.DefaultInstance();
-                            var imgs = convert.GetImages(fileOrDir);
+                            var imgs = convert.GetImages(file);
                             _images.AddRange(imgs.Select(img => new CImage(img)));
                         }
                         else if (CImage.ImageTypeSupport.Contains(ext))
                         {
-                            _images.Add(new CImage(fileOrDir));
+                            _images.Add(new CImage(file));
                         }
                         else
                         {
