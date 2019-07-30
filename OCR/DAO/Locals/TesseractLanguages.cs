@@ -55,7 +55,7 @@ namespace OCR.DAO.Locals
 
         public string GetLanguagesDir()
         {
-            return Path.Combine(_path, "/");
+            return _path;
         }
         #endregion
     }

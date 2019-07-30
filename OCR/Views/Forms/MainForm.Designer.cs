@@ -72,14 +72,16 @@
             this.dataGridView_Result = new System.Windows.Forms.DataGridView();
             this.panel2 = new System.Windows.Forms.Panel();
             this.btn_ClearResult = new System.Windows.Forms.Button();
-            this.btn_ExtractBaseOnRegionProfile = new System.Windows.Forms.Button();
+            this.btn_ExtractBaseOnROIProfile = new System.Windows.Forms.Button();
             this.btn_ExtractCurrentImageBaseOnRegionProfile = new System.Windows.Forms.Button();
             this.btn_ExtractText = new System.Windows.Forms.Button();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.backgroundWorkerForOCR = new System.ComponentModel.BackgroundWorker();
+            this.backgroundWorkerForOCRFullCharacterOrROI = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorkerForLoadImage = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorkerForScan = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorkerVideoCapture = new System.ComponentModel.BackgroundWorker();
+            this.backgroundWorkerForOCRROISingleImage = new System.ComponentModel.BackgroundWorker();
+            this.backgroundWorkerForOCRROIAllImage = new System.ComponentModel.BackgroundWorker();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.imageBoxPanel.SuspendLayout();
@@ -360,6 +362,7 @@
             this.label2.Size = new System.Drawing.Size(52, 13);
             this.label2.TabIndex = 2;
             this.label2.Text = "Cấu hình:";
+            this.label2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Label2_MouseClick);
             // 
             // label1
             // 
@@ -371,10 +374,12 @@
             this.label1.Size = new System.Drawing.Size(57, 13);
             this.label1.TabIndex = 2;
             this.label1.Text = "Ngôn ngữ:";
+            this.label1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Label2_MouseClick);
             // 
             // cbb_RegionProfile
             // 
             this.cbb_RegionProfile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbb_RegionProfile.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.cbb_RegionProfile.FormattingEnabled = true;
             this.cbb_RegionProfile.Location = new System.Drawing.Point(560, 27);
             this.cbb_RegionProfile.Name = "cbb_RegionProfile";
@@ -386,6 +391,7 @@
             // 
             this.cbb_Lang.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbb_Lang.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
             this.cbb_Lang.FormattingEnabled = true;
             this.cbb_Lang.Location = new System.Drawing.Point(560, 4);
             this.cbb_Lang.Name = "cbb_Lang";
@@ -501,7 +507,7 @@
             // panel2
             // 
             this.panel2.Controls.Add(this.btn_ClearResult);
-            this.panel2.Controls.Add(this.btn_ExtractBaseOnRegionProfile);
+            this.panel2.Controls.Add(this.btn_ExtractBaseOnROIProfile);
             this.panel2.Controls.Add(this.btn_ExtractCurrentImageBaseOnRegionProfile);
             this.panel2.Controls.Add(this.btn_ExtractText);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
@@ -523,14 +529,14 @@
             // 
             // btn_ExtractBaseOnRegionProfile
             // 
-            this.btn_ExtractBaseOnRegionProfile.Enabled = false;
-            this.btn_ExtractBaseOnRegionProfile.Location = new System.Drawing.Point(249, 3);
-            this.btn_ExtractBaseOnRegionProfile.Name = "btn_ExtractBaseOnRegionProfile";
-            this.btn_ExtractBaseOnRegionProfile.Size = new System.Drawing.Size(131, 37);
-            this.btn_ExtractBaseOnRegionProfile.TabIndex = 0;
-            this.btn_ExtractBaseOnRegionProfile.Text = "Trích xuất tất cả ảnh theo cấu hình";
-            this.btn_ExtractBaseOnRegionProfile.UseVisualStyleBackColor = true;
-            this.btn_ExtractBaseOnRegionProfile.Click += new System.EventHandler(this.Btn_ExtractBaseOnRegionProfile_Click);
+            this.btn_ExtractBaseOnROIProfile.Enabled = false;
+            this.btn_ExtractBaseOnROIProfile.Location = new System.Drawing.Point(249, 3);
+            this.btn_ExtractBaseOnROIProfile.Name = "btn_ExtractBaseOnRegionProfile";
+            this.btn_ExtractBaseOnROIProfile.Size = new System.Drawing.Size(131, 37);
+            this.btn_ExtractBaseOnROIProfile.TabIndex = 2;
+            this.btn_ExtractBaseOnROIProfile.Text = "Trích xuất tất cả ảnh theo cấu hình";
+            this.btn_ExtractBaseOnROIProfile.UseVisualStyleBackColor = true;
+            this.btn_ExtractBaseOnROIProfile.Click += new System.EventHandler(this.Btn_ExtractBaseOnROIAllImage_Click);
             // 
             // btn_ExtractCurrentImageBaseOnRegionProfile
             // 
@@ -538,10 +544,10 @@
             this.btn_ExtractCurrentImageBaseOnRegionProfile.Location = new System.Drawing.Point(89, 3);
             this.btn_ExtractCurrentImageBaseOnRegionProfile.Name = "btn_ExtractCurrentImageBaseOnRegionProfile";
             this.btn_ExtractCurrentImageBaseOnRegionProfile.Size = new System.Drawing.Size(154, 37);
-            this.btn_ExtractCurrentImageBaseOnRegionProfile.TabIndex = 0;
+            this.btn_ExtractCurrentImageBaseOnRegionProfile.TabIndex = 1;
             this.btn_ExtractCurrentImageBaseOnRegionProfile.Text = "Trích xuất ảnh hiện tại theo cấu hình";
             this.btn_ExtractCurrentImageBaseOnRegionProfile.UseVisualStyleBackColor = true;
-            this.btn_ExtractCurrentImageBaseOnRegionProfile.Click += new System.EventHandler(this.btnExtractAllPage_Click);
+            this.btn_ExtractCurrentImageBaseOnRegionProfile.Click += new System.EventHandler(this.btnExtractROISingleImage_Click);
             // 
             // btn_ExtractText
             // 
@@ -571,10 +577,10 @@
             this.splitContainer1.SplitterDistance = 690;
             this.splitContainer1.TabIndex = 3;
             // 
-            // backgroundWorkerForOCR
+            // backgroundWorkerForOCRFullCharacterOrROI
             // 
-            this.backgroundWorkerForOCR.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerForOCR_DoWork);
-            this.backgroundWorkerForOCR.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
+            this.backgroundWorkerForOCRFullCharacterOrROI.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerForOCRFullCharacterOrROI_DoWork);
+            this.backgroundWorkerForOCRFullCharacterOrROI.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
             // 
             // backgroundWorkerForLoadImage
             // 
@@ -583,14 +589,24 @@
             // 
             // backgroundWorkerForScan
             // 
-            this.backgroundWorkerForScan.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForScan_DoWork);
-            this.backgroundWorkerForScan.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundWorkerForScan_RunWorkerCompleted);
+            this.backgroundWorkerForScan.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForScanner_DoWork);
+            this.backgroundWorkerForScan.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundWorkerForScanner_RunWorkerCompleted);
             // 
             // backgroundWorkerVideoCapture
             // 
             this.backgroundWorkerVideoCapture.WorkerSupportsCancellation = true;
             this.backgroundWorkerVideoCapture.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerVideoCapture_DoWork);
             this.backgroundWorkerVideoCapture.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundWorkerVideoCapture_RunWorkerCompleted);
+            // 
+            // backgroundWorkerForOCRROISingleImage
+            // 
+            this.backgroundWorkerForOCRROISingleImage.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForOCRROISingleImage_DoWork);
+            this.backgroundWorkerForOCRROISingleImage.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
+            // 
+            // backgroundWorkerForOCRROIAllImage
+            // 
+            this.backgroundWorkerForOCRROIAllImage.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForOCRROIAllImage_DoWork);
+            this.backgroundWorkerForOCRROIAllImage.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
             // 
             // MainForm
             // 
@@ -647,7 +663,7 @@
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.ComponentModel.BackgroundWorker backgroundWorkerForOCR;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerForOCRFullCharacterOrROI;
         private System.Windows.Forms.ToolStripMenuItem spellCheckEditToolStripMenuItem;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
@@ -670,7 +686,7 @@
         private System.Windows.Forms.ToolStripMenuItem locAnhToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chonVungNhânDangToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem regionProfileToolStripMenuItem;
-        private System.Windows.Forms.Button btn_ExtractBaseOnRegionProfile;
+        private System.Windows.Forms.Button btn_ExtractBaseOnROIProfile;
         private System.Windows.Forms.ToolStripMenuItem openFolderToolStripMenuItem;
         private System.Windows.Forms.DataGridView dataGridView_Result;
         private System.Windows.Forms.Button btn_ExtractCurrentImageBaseOnRegionProfile;
@@ -682,6 +698,8 @@
         private System.ComponentModel.BackgroundWorker backgroundWorkerForScan;
         private System.Windows.Forms.ToolStripMenuItem kêtNôiThiêtSbijGhiHinhToolStripMenuItem;
         private System.ComponentModel.BackgroundWorker backgroundWorkerVideoCapture;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerForOCRROISingleImage;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerForOCRROIAllImage;
     }
 }
 

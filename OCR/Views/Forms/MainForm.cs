@@ -31,11 +31,8 @@ namespace OCR.Views.Forms
 {
     public partial class MainForm : Form
     {
-        protected override void OnClosed(EventArgs e)
-        {
-            base.OnClosed(e);
-            _imageSelectedRegion?.Dispose();
-        }
+        #region instance
+
         /// <summary>
         /// Ảnh hiện tại trên chương trình, dùng để xử lý chính
         /// </summary>
@@ -47,7 +44,7 @@ namespace OCR.Views.Forms
         /// <summary>
         /// Vùng ảnh được chọn sau khi bật tính năng crop
         /// </summary>
-        private Image<Gray, byte> _imageSelectedRegion = null;
+        private Image<Bgr, byte> _imageSelectedRegion = null;
 
         /// <summary>
         /// Tracking hành vi chuột phục vụ vẽ vời
@@ -125,6 +122,7 @@ namespace OCR.Views.Forms
             InitializeComponent();
         }
 
+        #region delegateevent
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -140,114 +138,6 @@ namespace OCR.Views.Forms
                 }
                 _images.Clear();
                 backgroundWorkerForLoadImage.RunWorkerAsync(openFile.FileName);
-            }
-        }
-
-        private void BackgroundWorkerForLoadImage_DoWork(object sender, DoWorkEventArgs e)
-        {
-            if (backgroundWorkerVideoCapture.IsBusy)
-                backgroundWorkerVideoCapture.CancelAsync();
-            this.InvokeOnUIThreadASync(() =>
-            {
-                toolStripStatuslabel.Text = "Loading Image...";
-                toolStripProgressBar.Enabled = true;
-                toolStripProgressBar.Visible = true;
-                openToolStripMenuItem1.Enabled = false;
-                EnableCommonButton(false);
-                toolStripStatusLabelImgSize.Text = "Nothing.";
-            });
-            if (e.Argument != null)
-            {
-                _images.Clear();
-                string fileOrDir = e.Argument as string;
-                if (fileOrDir.CheckIfIsFileAndExist())
-                {
-                    var ext = Path.GetExtension(fileOrDir);
-                    if (Pdf2Image.FileTypeSupport.Contains(ext))
-                    {
-                        IPdf2Image convert = Pdf2Image.DefaultInstance();
-                        var imgs = convert.GetImages(fileOrDir);
-                        _images.AddRange(imgs.Select(img => new CImage(img)));
-                    }
-                    else if (CImage.ImageTypeSupport.Contains(ext))
-                    {
-                        _images.Add(new CImage(fileOrDir));
-                    }
-                    else
-                    {
-                        MessageBox.Show("Định dạng dảnh không được  hổ trợ.", "Lỗi không hổ trợ", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-                else if (fileOrDir.CheckIfIsFolderAndExist())
-                {
-                    string[] files = Directory.GetFiles(fileOrDir).Where(f =>
-                    {
-                        var ext = Path.GetExtension(f);
-                        return Pdf2Image.FileTypeSupport.Contains(ext) || CImage.ImageTypeSupport.Contains(ext);
-                    }).ToArray();
-                    foreach (string file in files)
-                    {
-                        var ext = Path.GetExtension(file);
-                        if (Pdf2Image.FileTypeSupport.Contains(ext))
-                        {
-                            IPdf2Image convert = Pdf2Image.DefaultInstance();
-                            var imgs = convert.GetImages(fileOrDir);
-                            _images.AddRange(imgs.Select(img => new CImage(img)));
-                        }
-                        else if (CImage.ImageTypeSupport.Contains(ext))
-                        {
-                            _images.Add(new CImage(fileOrDir));
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                }
-                else
-                {
-                    return;
-                }
-                if (_images.Count == 0)
-                    return;
-                _currentImageIndex = 0;
-                this.InvokeOnUIThreadASync(() => pictureBox_ScanImage.Image = _images?[_currentImageIndex].GetOriginalImage().Bitmap);
-            }
-        }
-
-        private void BackgroundWorkerForLoadImage_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.InvokeOnUIThreadASync(() =>
-            {
-                toolStripProgressBar.Enabled = false;
-                toolStripProgressBar.Visible = false;
-                openToolStripMenuItem1.Enabled = true;
-                EnableCommonButton(true);
-                toolStripStatuslabel.Text = "Loading Success.";
-                toolStripStatusLabelImgSize.Text = $"Image size: {_images[_currentImageIndex].GetOriginalImage().Size.Width}px*{_images[_currentImageIndex].GetOriginalImage().Size.Height}px*{_images[_currentImageIndex].GetOriginalImage().NumberOfChannels}channel";
-
-                CheckbtnPrevandNext();
-            });
-        }
-
-        private void CheckbtnPrevandNext()
-        {
-            if (_currentImageIndex > 0)
-            {
-                btn_Prev.Enabled = true;
-            }
-            else
-            {
-                btn_Prev.Enabled = false;
-            }
-            if (_currentImageIndex < _images.Count - 1)
-            {
-                btn_Next.Enabled = true;
-            }
-            else
-            {
-                btn_Next.Enabled = false;
             }
         }
 
@@ -281,83 +171,21 @@ namespace OCR.Views.Forms
 
         private void BtnOCRProcess_Click(object sender, EventArgs e)
         {
+            if (cbb_Lang.SelectedItem == null)
+            {
+                MessageBox.Show("Chọn ngôn ngữ trước !", "Chưa chọn ngôn ngữ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             if (_images.Count == 0)
             {
                 MessageBox.Show("Chọn hình trước !", "Chưa chọn hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            backgroundWorkerForOCR.RunWorkerAsync();
-        }
-
-        private void EnableCommonButton(bool enable = true)
-        {
-            btn_Prev.Enabled = enable;
-            btn_Next.Enabled = false;
-            btn_ActivePictureBox.Enabled = enable;
-            btn_RotateLeft.Enabled = enable;
-            btn_RotateRight.Enabled = enable;
-            btn_DeSelectedRegion.Enabled = enable;
-            btn_ExtractText.Enabled = enable;
-            btn_ExtractCurrentImageBaseOnRegionProfile.Enabled = enable;
-            btn_ExtractBaseOnRegionProfile.Enabled = enable;
-        }
-
-        private void backgroundWorkerForOCR_DoWork(object sender, DoWorkEventArgs e)
-        {
-            this.InvokeOnUIThreadASync(() =>
+            if (!(dataGridView_Result.Tag is bool))
             {
-                toolStripStatuslabel.Text = "OCR Processing...";
-                toolStripProgressBar.Enabled = true;
-                toolStripProgressBar.Visible = true;
-                pictureBox_ScanImage.Enabled = false;
-                EnableCommonButton(false);
-            });
-
-        }
-
-        private void backgroundWorkerForOCR_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.InvokeOnUIThreadASync(() =>
-            {
-                toolStripProgressBar.Enabled = false;
-                toolStripProgressBar.Visible = false;
-                EnableCommonButton(true);
-                CheckbtnPrevandNext();
-                toolStripStatuslabel.Text = "OCR Completed.";
-            });
-        }
-
-        private void ProcessOCR()
-        {
-            string currentLang = "";
-            this.InvokeOnUIThreadASync(() =>
-            {
-                CreateDataGridView(null);
-                if (cbb_Lang.SelectedItem != null)
-                {
-                    currentLang = cbb_Lang.SelectedItem.ToString().Trim();
-                }
-                else
-                {
-                    MessageBox.Show("Chọn ngôn ngữ trước.", "Chưa chọn ngôn ngữ.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            });
-            if (currentLang.Length == 0)
-            {
-                return;
+                CreateDataGridView();
             }
-
-            List<string> result = new List<string>();
-            if (_imageSelectedRegion == null)
-            {
-                result.Add(OCRWraper.Instance(currentLang).GetUtf8Text(_images[_currentImageIndex]));
-            }
-            else
-            {
-                result.Add(OCRWraper.Instance(currentLang).GetUtf8Text(_imageSelectedRegion));
-                _imageSelectedRegion = null;
-            }
-            this.InvokeOnUIThreadASync(() => FillDataGridViewRow(result));
+            backgroundWorkerForOCRFullCharacterOrROI.RunWorkerAsync(cbb_Lang.SelectedItem);
         }
 
         /// <summary>
@@ -382,13 +210,6 @@ namespace OCR.Views.Forms
         private void btnClearTxt_Click(object sender, EventArgs e)
         {
             ClearDataGridView();
-        }
-
-        private void ClearDataGridView()
-        {
-            dataGridView_Result.ClearSelection();
-            dataGridView_Result.Columns.Clear();
-            dataGridView_Result.Rows.Clear();
         }
 
         private void btnRotateLeft_Click(object sender, EventArgs e)
@@ -470,10 +291,14 @@ namespace OCR.Views.Forms
                                     g.DrawRectangle(p, rect);
                                 }
                             }
-                            var imgAfterProcess = _images[_currentImageIndex].GetAfterProcessImage() as Image<Gray, byte>;
-                            imgAfterProcess.ROI = rect.ConvertToActualyImageSizeWithAcc(pictureBox_ScanImage).ConvertToActualyImageSizeRemoveAcc();
-                            _imageSelectedRegion = imgAfterProcess.Copy();
-                            imgAfterProcess.ROI = Rectangle.Empty;
+                            var imgOrginal = _images[_currentImageIndex].GetOriginalImage() as Image<Bgr, byte>;
+                            imgOrginal.ROI = rect.ConvertToActualyImageSizeWithAcc(pictureBox_ScanImage).ConvertToActualyImageSizeRemoveAcc();
+                            _imageSelectedRegion = imgOrginal.Copy();
+                            using (Form showimg = new ShowImageForm(_imageSelectedRegion))
+                            {
+                                showimg.ShowDialog();
+                            }
+                            imgOrginal.ROI = Rectangle.Empty;
                         }
                     }
                 }
@@ -498,12 +323,6 @@ namespace OCR.Views.Forms
                     }
                 }
             }
-        }
-
-        private void ClearPoint()
-        {
-            _pointsForDrawRect.Clear();
-            pictureBox_ScanImage.Refresh();
         }
 
         private void btnClear_Click(object sender, EventArgs e)
@@ -533,6 +352,7 @@ namespace OCR.Views.Forms
             {
                 _currentImageIndex--;
             }
+            backgroundWorkerForLoadImage.RunWorkerAsync(_currentImageIndex);
         }
 
         private void BtnNext_Click(object sender, EventArgs e)
@@ -541,25 +361,28 @@ namespace OCR.Views.Forms
             {
                 _currentImageIndex++;
             }
+            backgroundWorkerForLoadImage.RunWorkerAsync(_currentImageIndex);
         }
 
-        private void btnExtractAllPage_Click(object sender, EventArgs e)
+        private void btnExtractROISingleImage_Click(object sender, EventArgs e)
         {
-            if (cbb_RegionProfile.SelectedItem == null)
+            if (cbb_RegionProfile.SelectedItem == null || _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile") == null)
             {
                 MessageBox.Show("Chọn một cấu hình cụ thể ở danh sách cấu hình.", "Chưa chọn cấu hình.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (_appConfig.GetConfig<ROIProfile>("CurrentRegionProfile") == null)
-            {
                 cbb_RegionProfile.UpdateUI(_regionProfiles.Profiles);
+                return;
             }
             if (_images.Count == 0)
             {
                 MessageBox.Show("Chọn hình, hoặc thư mục chứa hình trước !", "Chưa chọn hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            backgroundWorkerForOCR.RunWorkerAsync();
+            var rOIProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
+            if (!(dataGridView_Result.Tag is ROIProfile) || (dataGridView_Result.Tag as ROIProfile) != rOIProfile)
+            {
+                CreateDataGridView(rOIProfile);
+            }
+            backgroundWorkerForOCRROISingleImage.RunWorkerAsync(rOIProfile);
         }
 
         private void ChoseRegionInPageToolStripMenuItem_Click(object sender, EventArgs e)
@@ -583,58 +406,25 @@ namespace OCR.Views.Forms
             cbb_RegionProfile.UpdateUI(lstProfile, lstProfile.FirstOrDefault());
         }
 
-        private void Btn_ExtractBaseOnRegionProfile_Click(object sender, EventArgs e)
+        private void Btn_ExtractBaseOnROIAllImage_Click(object sender, EventArgs e)
         {
-            if (cbb_RegionProfile.SelectedItem == null)
+            if (cbb_RegionProfile.SelectedItem == null || _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile") == null)
             {
                 MessageBox.Show("Chọn một cấu hình cụ thể ở danh sách cấu hình.", "Chưa chọn cấu hình.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (_appConfig.GetConfig<ROIProfile>("CurrentRegionProfile") == null)
-            {
                 cbb_RegionProfile.UpdateUI(_regionProfiles.Profiles);
+                return;
             }
             if (_images.Count == 0)
             {
                 MessageBox.Show("Chọn hình, hoặc thư mục chứa hình trước !", "Chưa chọn hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            backgroundWorkerForOCR.RunWorkerAsync();
-        }
-
-        private void ProcessOCRBaseOnRegion()
-        {
-            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
-            ROIProfile curentRegionProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
-            this.InvokeOnUIThreadASync(() =>
+            var rOIProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
+            if (!(dataGridView_Result.Tag is ROIProfile) || (dataGridView_Result.Tag as ROIProfile) != rOIProfile)
             {
-                CreateDataGridView(curentRegionProfile);
-            });
-        }
-
-        private void CreateDataGridView(ROIProfile regionProfile = null)
-        {
-            ClearDataGridView();
-            dataGridView_Result.Columns.Add("number", "STT");
-            dataGridView_Result.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            if (regionProfile == null)
-            {
-                dataGridView_Result.Columns.Add("result", "Kết quả");
+                CreateDataGridView(rOIProfile);
             }
-            else
-            {
-                foreach (ROI col in regionProfile.Regions)
-                {
-                    dataGridView_Result.Columns.Add(col.RegionName, col.RegionName);
-                }
-            }
-        }
-
-        private void FillDataGridViewRow(List<string> cells)
-        {
-            int numRows = dataGridView_Result.Rows.Count;
-            cells.Insert(0, numRows.ToString());
-            dataGridView_Result.Rows.Add(cells.ToArray());
+            backgroundWorkerForOCRROIAllImage.RunWorkerAsync(rOIProfile);
         }
 
         private void Cbb_RegionProfile_SelectedIndexChanged(object sender, EventArgs e)
@@ -642,7 +432,7 @@ namespace OCR.Views.Forms
             ComboBox cbb = sender as ComboBox;
             if (cbb.SelectedItem == null)
             {
-                _appConfig.SetConfig<ROIProfile>("CurrentRegionProfile",null);
+                _appConfig.SetConfig<ROIProfile>("CurrentRegionProfile", null);
             }
             else
             {
@@ -737,39 +527,6 @@ namespace OCR.Views.Forms
             }
         }
 
-        private void BackgroundWorkerForScan_DoWork(object sender, DoWorkEventArgs e)
-        {
-            if (string.IsNullOrEmpty(ScannerID))
-            {
-                return;
-            }
-            this.InvokeOnUIThreadASync(() =>
-            {
-                toolStripStatuslabel.Text = "Scan Processing...";
-                toolStripProgressBar.Enabled = true;
-                toolStripProgressBar.Visible = true;
-                pictureBox_ScanImage.Enabled = false;
-                EnableCommonButton(false);
-            });
-            _images.Clear();
-            _images.AddRange(WIAScannerControl.Scan(ScannerID).Select(f=> new CImage(f)));
-            if (_images.Count > 0)
-                _currentImageIndex = 0;
-        }
-
-        private void BackgroundWorkerForScan_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.InvokeOnUIThreadASync(() =>
-            {
-                toolStripProgressBar.Enabled = false;
-                toolStripProgressBar.Visible = false;
-                EnableCommonButton(true);
-                CheckbtnPrevandNext();
-                toolStripStatuslabel.Text = "Scan Completed.";
-                backgroundWorkerForLoadImage.RunWorkerAsync();
-            });
-        }
-
         private void ConnectVideoCaptureToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (backgroundWorkerVideoCapture.IsBusy)
@@ -781,6 +538,228 @@ namespace OCR.Views.Forms
             }
             CamIndex = camIndex;
             backgroundWorkerVideoCapture.RunWorkerAsync(CamIndex);
+        }
+
+
+        private void Label2_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e?.Button == MouseButtons.Right)
+            {
+                ActiveControl = null;
+            }
+        }
+
+        /// <summary>
+        /// Create hotkey
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (btn_Scan.Enabled && e?.KeyCode == Keys.C)
+            {
+                btn_Scan.PerformClick();
+                if (_pauseVideoCapture)
+                {
+                    btn_ExtractBaseOnROIProfile.PerformClick();
+                }
+            }
+            base.OnKeyDown(e);
+        }
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _imageSelectedRegion?.Dispose();
+        }
+        #endregion
+        #region function
+
+        private void CheckbtnPrevandNext()
+        {
+            if (_currentImageIndex > 0)
+            {
+                btn_Prev.Enabled = true;
+            }
+            else
+            {
+                btn_Prev.Enabled = false;
+            }
+            if (_currentImageIndex < _images.Count - 1)
+            {
+                btn_Next.Enabled = true;
+            }
+            else
+            {
+                btn_Next.Enabled = false;
+            }
+            txt_BoxPage.Text = $"{_currentImageIndex + 1}/{_images.Count}";
+        }
+
+        private void EnableCommonButton(bool enable = true)
+        {
+            btn_Prev.Enabled = enable;
+            btn_Next.Enabled = false;
+            btn_ActivePictureBox.Enabled = enable;
+            btn_RotateLeft.Enabled = enable;
+            btn_RotateRight.Enabled = enable;
+            btn_DeSelectedRegion.Enabled = enable;
+            btn_ExtractText.Enabled = enable;
+            btn_ExtractCurrentImageBaseOnRegionProfile.Enabled = enable;
+            btn_ExtractBaseOnROIProfile.Enabled = enable;
+        }
+
+        private void ClearDataGridView()
+        {
+            dataGridView_Result.ClearSelection();
+            dataGridView_Result.Columns.Clear();
+            dataGridView_Result.Rows.Clear();
+            dataGridView_Result.Tag = null;
+        }
+
+        private void ClearPoint()
+        {
+            _pointsForDrawRect.Clear();
+            pictureBox_ScanImage.Refresh();
+        }
+
+        private void CreateDataGridView(ROIProfile regionProfile = null)
+        {
+            ClearDataGridView();
+            dataGridView_Result.Columns.Add("number", "STT");
+            dataGridView_Result.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            if (regionProfile == null)
+            {
+                dataGridView_Result.Tag = false;
+                dataGridView_Result.Columns.Add("result", "Kết quả");
+            }
+            else
+            {
+                dataGridView_Result.Tag = regionProfile;
+                foreach (ROI col in regionProfile.Regions)
+                {
+                    dataGridView_Result.Columns.Add(col.RegionName, col.RegionName);
+                }
+            }
+        }
+
+        private void FillDataGridViewRow(List<string> cells)
+        {
+            int numRows = dataGridView_Result.Rows.Count;
+            cells.Insert(0, numRows.ToString());
+            dataGridView_Result.Rows.Add(cells.ToArray());
+        }
+
+        private void AnimateOCR()
+        {
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripStatuslabel.Text = "OCR Processing...";
+                toolStripProgressBar.Enabled = true;
+                toolStripProgressBar.Visible = true;
+                pictureBox_ScanImage.Enabled = false;
+                EnableCommonButton(false);
+            });
+        }
+        #endregion
+        #region backroundworker
+
+        private void BackgroundWorkerForLoadImage_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (backgroundWorkerVideoCapture.IsBusy)
+                backgroundWorkerVideoCapture.CancelAsync();
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripStatuslabel.Text = "Loading Image...";
+                toolStripProgressBar.Enabled = true;
+                toolStripProgressBar.Visible = true;
+                openToolStripMenuItem1.Enabled = false;
+                EnableCommonButton(false);
+                toolStripStatusLabelImgSize.Text = "Nothing.";
+            });
+            if (e.Argument != null)
+            {
+                if (e.Argument is int index)
+                {
+                    if (index >= 0 && index < _images.Count)
+                    {
+                        if (_currentImageIndex != index)
+                        {
+                            _currentImageIndex = index;
+                        }
+                        this.InvokeOnUIThreadASync(() => pictureBox_ScanImage.Image = _images?[_currentImageIndex].GetOriginalImage().Bitmap);
+                    }
+                    return;
+                }
+                _images.Clear();
+                string fileOrDir = e.Argument as string;
+                if (fileOrDir.CheckIfIsFileAndExist())
+                {
+                    var ext = Path.GetExtension(fileOrDir);
+                    if (Pdf2Image.FileTypeSupport.Contains(ext))
+                    {
+                        IPdf2Image convert = Pdf2Image.DefaultInstance();
+                        var imgs = convert.GetImages(fileOrDir);
+                        _images.AddRange(imgs.Select(img => new CImage(img)));
+                    }
+                    else if (CImage.ImageTypeSupport.Contains(ext))
+                    {
+                        _images.Add(new CImage(fileOrDir));
+                    }
+                    else
+                    {
+                        MessageBox.Show("Định dạng dảnh không được  hổ trợ.", "Lỗi không hổ trợ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                else if (fileOrDir.CheckIfIsFolderAndExist())
+                {
+                    string[] files = Directory.GetFiles(fileOrDir).Where(f =>
+                    {
+                        var ext = Path.GetExtension(f);
+                        return Pdf2Image.FileTypeSupport.Contains(ext) || CImage.ImageTypeSupport.Contains(ext);
+                    }).ToArray();
+                    foreach (string file in files)
+                    {
+                        var ext = Path.GetExtension(file);
+                        if (Pdf2Image.FileTypeSupport.Contains(ext))
+                        {
+                            IPdf2Image convert = Pdf2Image.DefaultInstance();
+                            var imgs = convert.GetImages(fileOrDir);
+                            _images.AddRange(imgs.Select(img => new CImage(img)));
+                        }
+                        else if (CImage.ImageTypeSupport.Contains(ext))
+                        {
+                            _images.Add(new CImage(fileOrDir));
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                }
+                else
+                {
+                    return;
+                }
+                if (_images.Count == 0)
+                    return;
+                _currentImageIndex = 0;
+                this.InvokeOnUIThreadASync(() => pictureBox_ScanImage.Image = _images?[_currentImageIndex].GetOriginalImage().Bitmap);
+            }
+        }
+
+        private void BackgroundWorkerForLoadImage_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripProgressBar.Enabled = false;
+                toolStripProgressBar.Visible = false;
+                openToolStripMenuItem1.Enabled = true;
+                EnableCommonButton(true);
+                toolStripStatuslabel.Text = "Loading Success.";
+                toolStripStatusLabelImgSize.Text = $"Image size: {_images[_currentImageIndex].GetOriginalImage().Size.Width}px*{_images[_currentImageIndex].GetOriginalImage().Size.Height}px*{_images[_currentImageIndex].GetOriginalImage().NumberOfChannels} channel";
+                CheckbtnPrevandNext();
+            });
         }
 
         private (IImage imgOriginal, IImage imgDrawed, RotatedRect rotated) _resultCache = (null, null, RotatedRect.Empty);
@@ -834,19 +813,158 @@ namespace OCR.Views.Forms
             btn_Scan.Text = "Scan/Capture";
             btn_Scan.Enabled = false;
         }
-        /// <summary>
-        /// Create hotkey
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+
+        private void BackgroundWorkerForScanner_DoWork(object sender, DoWorkEventArgs e)
         {
-            if (keyData == Keys.C)
+            if (string.IsNullOrEmpty(ScannerID))
             {
-                btn_Scan.PerformClick();
-                return true;
+                return;
             }
-            return base.ProcessCmdKey(ref msg, keyData);
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripStatuslabel.Text = "Scan Processing...";
+                toolStripProgressBar.Enabled = true;
+                toolStripProgressBar.Visible = true;
+                pictureBox_ScanImage.Enabled = false;
+                EnableCommonButton(false);
+            });
+            _images.Clear();
+            _images.AddRange(WIAScannerControl.Scan(ScannerID).Select(f => new CImage(f)));
+            if (_images.Count > 0)
+            {
+                _currentImageIndex = 0;
+                this.InvokeOnUIThreadASync(() => pictureBox_ScanImage.Image = _images?[_currentImageIndex].GetOriginalImage().Bitmap);
+            }
         }
+
+        private void BackgroundWorkerForScanner_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripProgressBar.Enabled = false;
+                toolStripProgressBar.Visible = false;
+                EnableCommonButton(true);
+                CheckbtnPrevandNext();
+                toolStripStatuslabel.Text = "Scan Completed.";
+                toolStripStatusLabelImgSize.Text = $"Image size: {_images[_currentImageIndex].GetOriginalImage().Size.Width}px*{_images[_currentImageIndex].GetOriginalImage().Size.Height}px*{_images[_currentImageIndex].GetOriginalImage().NumberOfChannels}channel";
+            });
+        }
+
+        private void backgroundWorkerForOCRFullCharacterOrROI_DoWork(object sender, DoWorkEventArgs e)
+        {
+            AnimateOCR();
+            string lang = e.Argument as string;
+            if (lang == null)
+                return;
+            IOCR oCR = OCRWraper.Instance(lang);
+            List<string> pages = new List<string>();
+            if (_imageSelectedRegion != null)
+            {
+                pages.Add(oCR.GetUtf8Text(_imageSelectedRegion));
+            }
+            else
+            {
+                foreach (CImage image in _images)
+                {
+                    this.InvokeOnUIThreadASync(() =>
+                    {
+                        pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
+                    });
+                    pages.Add(oCR.GetUtf8Text(image));
+                    image.Release();
+                }
+            }
+            this.InvokeOnUIThreadASync(() =>
+            {
+                foreach (var page in pages.Select(p => new List<string> { p }))
+                {
+                    FillDataGridViewRow(page);
+                }
+            });
+        }
+
+        private void BackgroundWorkerForOCRROISingleImage_DoWork(object sender, DoWorkEventArgs e)
+        {
+            AnimateOCR();
+            ROIProfile roiProfile = e.Argument as ROIProfile;
+            if (roiProfile == null)
+                return;
+            IOCRROI oCR = OCRWraper.DefaultInstance();
+            CImage image = _images[_currentImageIndex];
+            this.InvokeOnUIThreadASync(() =>
+            {
+                pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
+            });
+            var res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
+            this.InvokeOnUIThreadASync(() =>
+            {
+                pictureBox_ScanImage.Image = imgdrawd.Bitmap;
+            });
+            this.InvokeOnUIThreadASync(() =>
+            {
+                foreach (Dictionary<string, string> row in res)
+                {
+                    var tmp = row.Select(cell => cell.Value);
+                    if (tmp.Any(s => string.IsNullOrWhiteSpace(s)))
+                    {
+                        continue;
+                    }
+                    FillDataGridViewRow(tmp.ToList());
+                }
+            });
+        }
+
+        private void BackgroundWorkerForOCRROIAllImage_DoWork(object sender, DoWorkEventArgs e)
+        {
+            AnimateOCR();
+            ROIProfile roiProfile = e.Argument as ROIProfile;
+            if (roiProfile == null)
+                return;
+            IOCRROI oCR = OCRWraper.DefaultInstance();
+            List<Dictionary<string, string>> pages = new List<Dictionary<string, string>>();
+            foreach (CImage image in _images)
+            {
+                this.InvokeOnUIThreadASync(() =>
+                {
+                    pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
+                });
+                var res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
+                pages.AddRange(res);
+                this.InvokeOnUIThreadASync(() =>
+                {
+                    pictureBox_ScanImage.Image = imgdrawd.Bitmap;
+                });
+                this.InvokeOnUIThreadASync(() =>
+                {
+                    foreach (Dictionary<string, string> row in res)
+                    {
+                        var tmp = row.Select(cell => cell.Value);
+                        if (tmp.Any(s => string.IsNullOrWhiteSpace(s)))
+                        {
+                            continue;
+                        }
+                        FillDataGridViewRow(tmp.ToList());
+                    }
+                });
+                image.Release();
+            }
+        }
+
+        private void backgroundWorkerForOCR_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripProgressBar.Enabled = false;
+                toolStripProgressBar.Visible = false;
+                EnableCommonButton(true);
+                CheckbtnPrevandNext();
+                toolStripStatuslabel.Text = "OCR Completed.";
+            });
+        }
+
+        #endregion
+
+        #endregion
+
     }
 }

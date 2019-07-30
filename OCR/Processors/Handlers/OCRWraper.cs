@@ -136,8 +136,9 @@ namespace OCR.Processors.Handlers
                 imgTmp.Draw(rect, new Bgr(Color.Red), 1);
                 _tesseracts[region.Language].SetImage(imgThre.Copy());
                 string txt = _tesseracts[region.Language].GetUTF8Text();
-                Match m = Regex.Match(txt, region.GenaratedRegexPattern, RegexOptions.Multiline);
-                onePage.Add(region.RegionName, m.Value);
+                MatchCollection ms = Regex.Matches(txt, region.GenaratedRegexPattern, RegexOptions.Multiline);
+                var m = ms.Cast<Match>().OrderByDescending(s => s.Length).Take(1).FirstOrDefault();
+                onePage.Add(region.RegionName, m?.Value);
                 imgThre.ROI = Rectangle.Empty;
             }
             imgdrawed = imgTmp;
@@ -168,8 +169,9 @@ namespace OCR.Processors.Handlers
                 imgColor.Draw(rect, new Bgr(Color.Red), 1);
                 _tesseracts[region.Language].SetImage(imgOriginal.Copy());
                 string txt = _tesseracts[region.Language].GetUTF8Text();
-                Match m = Regex.Match(txt, region.GenaratedRegexPattern, RegexOptions.Multiline);
-                onePage.Add(region.RegionName, m.Value);
+                MatchCollection ms = Regex.Matches(txt, region.GenaratedRegexPattern, RegexOptions.Multiline);
+                var m = ms.Cast<Match>().OrderByDescending(s => s.Length).Take(1).FirstOrDefault();
+                onePage.Add(region.RegionName, m?.Value);
                 imgOriginal.ROI = Rectangle.Empty;
             }
             imgdrawed = imgColor;

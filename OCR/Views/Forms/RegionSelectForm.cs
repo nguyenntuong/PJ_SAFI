@@ -83,7 +83,7 @@ namespace OCR.Views.Forms
         {
             InitializeComponent();
         }
-
+        #region delegateevent
         private void BtnLoadImage_Click(object sender, EventArgs e)
         {
             pictureBox_ImgSample.Enabled = false;
@@ -108,121 +108,6 @@ namespace OCR.Views.Forms
                     break;
                 default:
                     break;
-            }
-        }
-
-        private void BackgroundWorkerLoadImage_DoWork(object sender, DoWorkEventArgs e)
-        {
-            this.InvokeOnUIThreadASync(() =>
-            {
-                toolStripStatuslabel.Text = "Loading Image...";
-                toolStripProgressBar.Enabled = true;
-                toolStripProgressBar.Visible = true;
-                toolStripStatusLabelImgSize.Text = "Nothings";
-            });
-            switch (e.Argument)
-            {
-                case null:
-                default:
-                    this.InvokeOnUIThreadASync(() => MessageBox.Show("Lỗi không xác định.", "Không thể mở file."));
-                    break;
-                case string fileName:
-                    try
-                    {
-                        var ext = Path.GetExtension(fileName);
-                        if (Pdf2Image.FileTypeSupport.Contains(ext))
-                        {
-                            var convert = Pdf2Image.DefaultInstance();
-                            _image = new CImage(convert.GetImages(fileName).FirstOrDefault());
-                        }
-                        else if(CImage.ImageTypeSupport.Contains(ext))
-                        {
-                            _image = new CImage(fileName);
-                        }
-                        else
-                        {
-                            MessageBox.Show("File không hổ trợ.","Lỗi hổ trợ.",MessageBoxButtons.OK,MessageBoxIcon.Error);
-                            return;
-                        }
-                        this.InvokeOnUIThreadASync(() => pictureBox_ImgSample.Image = _image.GetOriginalImage().Bitmap);
-                    }
-                    catch (CvException ex)
-                    {
-                        Debug.WriteLine(ex.Message);
-                        this.InvokeOnUIThreadASync(() => MessageBox.Show("Định dạng file không hổ trợ!.", "Không thể mở file."));
-                    }
-                    break;
-                case Image<Bgr, byte> img:
-                    _image = new CImage(img);
-                    this.InvokeOnUIThreadASync(() => pictureBox_ImgSample.Image = _image.GetOriginalImage().Bitmap);
-                    break;
-            }
-        }
-
-        private void BackgroundWorkerLoadImage_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            this.InvokeOnUIThreadASync(() =>
-            {
-                pictureBox_ImgSample.Enabled = true;
-                toolStripProgressBar.Enabled = false;
-                toolStripProgressBar.Visible = false;
-                toolStripStatuslabel.Text = "Loading Success.";
-                toolStripStatusLabelImgSize.Text = $"Image size: {_image.GetOriginalImage().Size.Width}px*{_image.GetOriginalImage().Size.Height}px*{_image.GetOriginalImage().NumberOfChannels} channel";
-                ValidateProfileWithSampleImage();
-            });
-        }
-        /// <summary>
-        /// Kiểm tra xem ảnh mẩu và cấu hình hiện tại có khớp với nhau không
-        /// </summary>
-        private void ValidateProfileWithSampleImage(bool fromCbb = false)
-        {
-            if (CurrentRegionProfile == null && cbb_RegionProfile.SelectedItem != null)
-            {
-                CurrentRegionProfile = _roiProfiles.GetRegionProfile(cbb_RegionProfile.SelectedItem.ToString());
-            }
-            if (CurrentRegionProfile != null)
-            {
-                var paperSize = _paperProfiles.GetPaperProfile(CurrentRegionProfile.PaperSize);
-                if (paperSize == null)
-                {
-                    MessageBox.Show("Định nghĩa kích thước ảnh cho cấu hình này không tồn tại.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    CurrentRegionProfile = null;
-                    cbb_PaperSize.SelectedItem = null;
-                }
-                else
-                {
-                    if (fromCbb && !string.IsNullOrEmpty(CurrentRegionProfile.TemplateFile))
-                    {
-                        if (CurrentRegionProfile.TemplateFile.CheckIfIsFileAndExist())
-                        {
-                            _image = new CImage(CurrentRegionProfile.TemplateFile);
-                            pictureBox_ImgSample.Image = _image.GetOriginalImage().Bitmap;
-                        }
-                    }
-                    if (_image != null)
-                    {
-                        if (paperSize.Height != _image.GetOriginalImage().Size.Height && paperSize.Width != _image.GetOriginalImage().Size.Width)
-                        {
-                            MessageBox.Show("Kích thước ảnh không phù hợp với cấu hình hiện tại, hãy tạo mới hoặc chọn lại cấu hình phù hợp.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            CurrentRegionProfile = null;
-                        }
-                        else
-                        {
-                            _regions = CurrentRegionProfile
-                                    .Regions
-                                    .Select(r => new ROI(r.RegionName
-                                    , r.Language
-                                    , r.RegionRectangle.ConvertActualyImageSizeToPictureClientSize(pictureBox_ImgSample)
-                                    , r.RegexPattern
-                                    , r.RegexPatternSpecialChar)
-                                    ).ToList();
-                        }
-                    }
-                    cbb_PaperSize.SelectedItem = CurrentRegionProfile?.PaperSize;
-                    btn_Save.Enabled = true;
-                    lstBoxRectangles.UpdateUI(_regions);
-                    DrawRectangles();
-                }
             }
         }
 
@@ -293,37 +178,6 @@ namespace OCR.Views.Forms
                     }
                 }
                 DrawRectangles(ROI.Empty, false);
-            }
-        }
-
-        private void ClearCancelPoint()
-        {
-            _pointsForDrawRect.Clear();
-        }
-        //TODO fix lỗi khi người dùng thay đổi kích thức cửa sổ dẫn đến vẽ sai
-        private void DrawRectangles(ROI activeegion = null, bool needRefresh = true)
-        {
-            if (needRefresh)
-            {
-                pictureBox_ImgSample.Refresh();
-            }
-            if (_regions.Count == 0)
-                return;
-            using (Graphics g = pictureBox_ImgSample.CreateGraphics())
-            {
-                using (Pen p = new Pen(Brushes.Aqua))
-                {
-                    var rectArray = _regions.Where(r => !r.Equals(activeegion)).Select(r => r.RegionRectangle).ToArray();
-                    if (rectArray.Length > 0)
-                        g.DrawRectangles(p, rectArray);
-                }
-                if (activeegion != null)
-                {
-                    using (Pen p = new Pen(Brushes.Red))
-                    {
-                        g.DrawRectangle(p, activeegion.RegionRectangle);
-                    }
-                }
             }
         }
 
@@ -444,69 +298,6 @@ namespace OCR.Views.Forms
             this.Close();
         }
 
-        /// <summary>
-        /// Kiểm tra cấu hình có hợp lệ hay chưa trước khi lưu hoặc áp dụng
-        /// </summary>
-        /// <returns></returns>
-        private ROIProfile RegionProfileValidateBeforeSave()
-        {
-            if (_image == null)
-            {
-                MessageBox.Show("Không có hình mẫu nào được chọn.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return null;
-            }
-            if (_regions.Count == 0)
-            {
-                MessageBox.Show("Không có vùng nào được chọn.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return null;
-            }
-            PaperProfile paper = null;
-            if (cbb_PaperSize.SelectedItem == null)
-            {
-                if (MessageBox.Show("Chưa chọn khổ giấy, muốn tạo mới dựa trên ảnh mẩu.", "Thông báo.", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK)
-                {
-                    return null;
-                }
-                paper = new PaperProfile(_currentRegionProfile?.PaperSize, _image.GetOriginalImage().Size.Width, _image.GetOriginalImage().Size.Height);
-                if (PaperProfileDialog.ShowCustomDialog(paper) != DialogResult.OK)
-                {
-                    return null;
-                }
-                cbb_PaperSize.UpdateUI(_paperProfiles.Profiles, paper?.Name);
-            }
-            paper = _paperProfiles.GetPaperProfile(cbb_PaperSize.SelectedItem.ToString().Trim());
-            if (paper == null)
-            {
-                cbb_PaperSize.UpdateUI(_paperProfiles.Profiles);
-                return null;
-            }
-            if (paper.Width != _image.GetOriginalImage().Size.Width && paper.Height != _image.GetOriginalImage().Size.Height)
-            {
-                if (MessageBox.Show("Kích thức khổ giấy không khớp với ảnh mẫu, muốn tạo mới khổ giấy?", "Xung đột", MessageBoxButtons.YesNo, MessageBoxIcon.Error) != DialogResult.Yes)
-                {
-                    return null;
-                }
-                paper = new PaperProfile("", _image.GetOriginalImage().Size.Width, _image.GetOriginalImage().Size.Height);
-                if (PaperProfileDialog.ShowCustomDialog(paper) != DialogResult.OK)
-                {
-                    return null;
-                }
-            }
-            var tempProfile = new ROIProfile
-            {
-                TemplateFile = _tempFiles.SaveFile(_image.GetOriginalImage()),
-                Name = "",
-                PaperSize = paper.Name,
-                Regions = _regions.Select(r => new ROI(r.RegionName
-                , r.Language
-                , r.RegionRectangle.ConvertToActualyImageSizeWithAcc(pictureBox_ImgSample)
-                , r.RegexPattern
-                , r.RegexPatternSpecialChar)
-                ).ToList(),
-            };
-            return tempProfile;
-        }
-
         private void Btn_SaveAs_Click(object sender, EventArgs e)
         {
             var tempProfile = RegionProfileValidateBeforeSave();
@@ -612,11 +403,231 @@ namespace OCR.Views.Forms
             var lstProfile = _roiProfiles.Profiles;
             cbb_RegionProfile.UpdateUI(lstProfile, lstProfile.FirstOrDefault());
         }
+
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
             _image?.Dispose();
         }
+        #endregion
+        #region funtion
+
+        /// <summary>
+        /// Kiểm tra cấu hình có hợp lệ hay chưa trước khi lưu hoặc áp dụng
+        /// </summary>
+        /// <returns></returns>
+        private ROIProfile RegionProfileValidateBeforeSave()
+        {
+            if (_image == null)
+            {
+                MessageBox.Show("Không có hình mẫu nào được chọn.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return null;
+            }
+            if (_regions.Count == 0)
+            {
+                MessageBox.Show("Không có vùng nào được chọn.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return null;
+            }
+            PaperProfile paper = null;
+            if (cbb_PaperSize.SelectedItem == null)
+            {
+                if (MessageBox.Show("Chưa chọn khổ giấy, muốn tạo mới dựa trên ảnh mẩu.", "Thông báo.", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) != DialogResult.OK)
+                {
+                    return null;
+                }
+                paper = new PaperProfile(_currentRegionProfile?.PaperSize, _image.GetOriginalImage().Size.Width, _image.GetOriginalImage().Size.Height);
+                if (PaperProfileDialog.ShowCustomDialog(paper) != DialogResult.OK)
+                {
+                    return null;
+                }
+                cbb_PaperSize.UpdateUI(_paperProfiles.Profiles, paper?.Name);
+            }
+            paper = _paperProfiles.GetPaperProfile(cbb_PaperSize.SelectedItem.ToString().Trim());
+            if (paper == null)
+            {
+                cbb_PaperSize.UpdateUI(_paperProfiles.Profiles);
+                return null;
+            }
+            if (paper.Width != _image.GetOriginalImage().Size.Width && paper.Height != _image.GetOriginalImage().Size.Height)
+            {
+                if (MessageBox.Show("Kích thức khổ giấy không khớp với ảnh mẫu, muốn tạo mới khổ giấy?", "Xung đột", MessageBoxButtons.YesNo, MessageBoxIcon.Error) != DialogResult.Yes)
+                {
+                    return null;
+                }
+                paper = new PaperProfile("", _image.GetOriginalImage().Size.Width, _image.GetOriginalImage().Size.Height);
+                if (PaperProfileDialog.ShowCustomDialog(paper) != DialogResult.OK)
+                {
+                    return null;
+                }
+            }
+            var tempProfile = new ROIProfile
+            {
+                TemplateFile = _tempFiles.SaveFile(_image.GetOriginalImage()),
+                Name = "",
+                PaperSize = paper.Name,
+                Regions = _regions.Select(r => new ROI(r.RegionName
+                , r.Language
+                , r.RegionRectangle.ConvertToActualyImageSizeWithAcc(pictureBox_ImgSample)
+                , r.RegexPattern
+                , r.RegexPatternSpecialChar)
+                ).ToList(),
+            };
+            return tempProfile;
+        }
+        
+        private void ClearCancelPoint()
+        {
+            _pointsForDrawRect.Clear();
+        }
+        
+        //TODO fix lỗi khi người dùng thay đổi kích thức cửa sổ dẫn đến vẽ sai
+        private void DrawRectangles(ROI activeegion = null, bool needRefresh = true)
+        {
+            if (needRefresh)
+            {
+                pictureBox_ImgSample.Refresh();
+            }
+            if (_regions.Count == 0)
+                return;
+            using (Graphics g = pictureBox_ImgSample.CreateGraphics())
+            {
+                using (Pen p = new Pen(Brushes.Aqua))
+                {
+                    var rectArray = _regions.Where(r => !r.Equals(activeegion)).Select(r => r.RegionRectangle).ToArray();
+                    if (rectArray.Length > 0)
+                        g.DrawRectangles(p, rectArray);
+                }
+                if (activeegion != null)
+                {
+                    using (Pen p = new Pen(Brushes.Red))
+                    {
+                        g.DrawRectangle(p, activeegion.RegionRectangle);
+                    }
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Kiểm tra xem ảnh mẩu và cấu hình hiện tại có khớp với nhau không
+        /// </summary>
+        private void ValidateProfileWithSampleImage(bool fromCbb = false)
+        {
+            if (CurrentRegionProfile == null && cbb_RegionProfile.SelectedItem != null)
+            {
+                CurrentRegionProfile = _roiProfiles.GetRegionProfile(cbb_RegionProfile.SelectedItem.ToString());
+            }
+            if (CurrentRegionProfile != null)
+            {
+                var paperSize = _paperProfiles.GetPaperProfile(CurrentRegionProfile.PaperSize);
+                if (paperSize == null)
+                {
+                    MessageBox.Show("Định nghĩa kích thước ảnh cho cấu hình này không tồn tại.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    CurrentRegionProfile = null;
+                    cbb_PaperSize.SelectedItem = null;
+                }
+                else
+                {
+                    if (fromCbb && !string.IsNullOrEmpty(CurrentRegionProfile.TemplateFile))
+                    {
+                        var fullPath = _tempFiles.GetFullPath(CurrentRegionProfile.TemplateFile);
+                        if (fullPath.CheckIfIsFileAndExist())
+                        {
+                            _image = new CImage(fullPath);
+                            pictureBox_ImgSample.Image = _image.GetOriginalImage().Bitmap;
+                        }
+                    }
+                    if (_image != null)
+                    {
+                        if (paperSize.Height != _image.GetOriginalImage().Size.Height && paperSize.Width != _image.GetOriginalImage().Size.Width)
+                        {
+                            MessageBox.Show("Kích thước ảnh không phù hợp với cấu hình hiện tại, hãy tạo mới hoặc chọn lại cấu hình phù hợp.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            CurrentRegionProfile = null;
+                        }
+                        else
+                        {
+                            _regions = CurrentRegionProfile
+                                    .Regions
+                                    .Select(r => new ROI(r.RegionName
+                                    , r.Language
+                                    , r.RegionRectangle.ConvertActualyImageSizeToPictureClientSize(pictureBox_ImgSample)
+                                    , r.RegexPattern
+                                    , r.RegexPatternSpecialChar)
+                                    ).ToList();
+                        }
+                    }
+                    cbb_PaperSize.SelectedItem = CurrentRegionProfile?.PaperSize;
+                    btn_Save.Enabled = true;
+                    lstBoxRectangles.UpdateUI(_regions);
+                    DrawRectangles();
+                }
+            }
+        }
+
+        #endregion
+        #region backgroundworker
+
+        private void BackgroundWorkerLoadImage_DoWork(object sender, DoWorkEventArgs e)
+        {
+            this.InvokeOnUIThreadASync(() =>
+            {
+                toolStripStatuslabel.Text = "Loading Image...";
+                toolStripProgressBar.Enabled = true;
+                toolStripProgressBar.Visible = true;
+                toolStripStatusLabelImgSize.Text = "Nothings";
+            });
+            switch (e.Argument)
+            {
+                case null:
+                default:
+                    this.InvokeOnUIThreadASync(() => MessageBox.Show("Lỗi không xác định.", "Không thể mở file."));
+                    break;
+                case string fileName:
+                    try
+                    {
+                        var ext = Path.GetExtension(fileName);
+                        if (Pdf2Image.FileTypeSupport.Contains(ext))
+                        {
+                            var convert = Pdf2Image.DefaultInstance();
+                            _image = new CImage(convert.GetImages(fileName).FirstOrDefault());
+                        }
+                        else if (CImage.ImageTypeSupport.Contains(ext))
+                        {
+                            _image = new CImage(fileName);
+                        }
+                        else
+                        {
+                            MessageBox.Show("File không hổ trợ.", "Lỗi hổ trợ.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                        this.InvokeOnUIThreadASync(() => pictureBox_ImgSample.Image = _image.GetOriginalImage().Bitmap);
+                    }
+                    catch (CvException ex)
+                    {
+                        Debug.WriteLine(ex.Message);
+                        this.InvokeOnUIThreadASync(() => MessageBox.Show("Định dạng file không hổ trợ!.", "Không thể mở file."));
+                    }
+                    break;
+                case Image<Bgr, byte> img:
+                    _image = new CImage(img);
+                    this.InvokeOnUIThreadASync(() => pictureBox_ImgSample.Image = _image.GetOriginalImage().Bitmap);
+                    break;
+            }
+        }
+
+        private void BackgroundWorkerLoadImage_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            this.InvokeOnUIThreadASync(() =>
+            {
+                pictureBox_ImgSample.Enabled = true;
+                toolStripProgressBar.Enabled = false;
+                toolStripProgressBar.Visible = false;
+                toolStripStatuslabel.Text = "Loading Success.";
+                toolStripStatusLabelImgSize.Text = $"Image size: {_image.GetOriginalImage().Size.Width}px*{_image.GetOriginalImage().Size.Height}px*{_image.GetOriginalImage().NumberOfChannels} channel";
+                ValidateProfileWithSampleImage();
+            });
+        }
+
+        #endregion
         #endregion
     }
 }

@@ -92,16 +92,14 @@ namespace OCR.Views.Additions.Dialogs
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            if (keyData == Keys.C)
+            if (btn_Capture.Enabled && e?.KeyChar == 'c')
             {
                 btn_Capture.PerformClick();
-                return true;
             }
-            return base.ProcessCmdKey(ref msg, keyData);
+            base.OnKeyPress(e);
         }
-
         private void BackgroundWorkerForVideoCapture_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
 

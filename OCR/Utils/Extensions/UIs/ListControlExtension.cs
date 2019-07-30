@@ -39,6 +39,15 @@ namespace OCR.Utils.Extensions.UIs
                 default:
                     break;
             }
+            //Control frm = lstControl?.Parent;
+            //while (frm != null && !(frm is Form))
+            //{
+            //    frm = frm.Parent;
+            //}
+            //if(frm is Form)
+            //{
+            //    (frm as Form).ActiveControl = null;
+            //}
         }
 
     }
