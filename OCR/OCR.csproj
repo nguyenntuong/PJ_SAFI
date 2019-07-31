@@ -93,8 +93,10 @@
     <Compile Include="Processors\Handlers\CImage.cs" />
     <Compile Include="Processors\Handlers\DetectPaperArea.cs" />
     <Compile Include="Processors\Handlers\HunspellWraper.cs" />
+    <Compile Include="Processors\Handlers\ImportImage.cs" />
     <Compile Include="Processors\Handlers\OCRWraper.cs" />
     <Compile Include="Processors\Interfaces\IHunspellWraper.cs" />
+    <Compile Include="Processors\Interfaces\IImportImage.cs" />
     <Compile Include="Processors\Interfaces\ILazy.cs" />
     <Compile Include="Processors\Interfaces\IOCR.cs" />
     <Compile Include="Processors\Handlers\Pdf2Image.cs" />

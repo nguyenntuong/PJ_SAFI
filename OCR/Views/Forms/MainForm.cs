@@ -116,6 +116,7 @@ namespace OCR.Views.Forms
         private readonly IAppConfig _appConfig = AppConfig.DefaultInstance();
         private readonly IROIProfilesResource _regionProfiles = ROIProfilesResource.DefaultInstance();
         private readonly ITesseractLanguages _tesseractLanguages = TesseractLanguages.DefaultInstance();
+        private readonly IImportImage _importImage = ImportImage.Instance(DetectPaperArea.MakeInstance());
         #endregion
         public MainForm()
         {
@@ -539,8 +540,7 @@ namespace OCR.Views.Forms
             CamIndex = camIndex;
             backgroundWorkerVideoCapture.RunWorkerAsync(CamIndex);
         }
-
-
+        
         private void Label2_MouseClick(object sender, MouseEventArgs e)
         {
             if (e?.Button == MouseButtons.Right)
@@ -694,48 +694,20 @@ namespace OCR.Views.Forms
                 string fileOrDir = e.Argument as string;
                 if (fileOrDir.CheckIfIsFileAndExist())
                 {
-                    var ext = Path.GetExtension(fileOrDir);
-                    if (Pdf2Image.FileTypeSupport.Contains(ext))
+                    var imageImport = _importImage.ImportFromFile(fileOrDir);
+                    if (imageImport.Count()>0)
                     {
-                        IPdf2Image convert = Pdf2Image.DefaultInstance();
-                        var imgs = convert.GetImages(fileOrDir);
-                        _images.AddRange(imgs.Select(img => new CImage(img)));
-                    }
-                    else if (CImage.ImageTypeSupport.Contains(ext))
-                    {
-                        _images.Add(new CImage(fileOrDir));
+                        _images.AddRange(imageImport);
                     }
                     else
                     {
-                        MessageBox.Show("Định dạng dảnh không được  hổ trợ.", "Lỗi không hổ trợ", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Định dạng ảnh không được  hổ trợ.", "Lỗi không hổ trợ", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
                 }
                 else if (fileOrDir.CheckIfIsFolderAndExist())
                 {
-                    string[] files = Directory.GetFiles(fileOrDir).Where(f =>
-                    {
-                        var ext = Path.GetExtension(f);
-                        return Pdf2Image.FileTypeSupport.Contains(ext) || CImage.ImageTypeSupport.Contains(ext);
-                    }).ToArray();
-                    foreach (string file in files)
-                    {
-                        var ext = Path.GetExtension(file);
-                        if (Pdf2Image.FileTypeSupport.Contains(ext))
-                        {
-                            IPdf2Image convert = Pdf2Image.DefaultInstance();
-                            var imgs = convert.GetImages(file);
-                            _images.AddRange(imgs.Select(img => new CImage(img)));
-                        }
-                        else if (CImage.ImageTypeSupport.Contains(ext))
-                        {
-                            _images.Add(new CImage(file));
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
+                    _images.AddRange(_importImage.ImportFromFolder(fileOrDir));
                 }
                 else
                 {

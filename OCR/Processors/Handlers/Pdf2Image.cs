@@ -27,9 +27,21 @@ namespace OCR.Processors.Handlers
             ".pdf"
         };
 
-        public static Pdf2Image DefaultInstance()
+        private static object _lockerObject = new object();
+        private static Pdf2Image _instance = null;
+        public static IPdf2Image DefaultInstance()
         {
-            return new Pdf2Image();
+            if (_instance == null)
+            {
+                lock (_lockerObject)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = new Pdf2Image();
+                    }
+                }
+            }
+            return _instance;
         }
         #endregion
         #region instance
@@ -43,7 +55,7 @@ namespace OCR.Processors.Handlers
         /// 
         /// </summary>
         /// <param name="path"></param>
-        /// <returns>List Image<Bgr,byte></returns>
+        /// <returns>List Mat</returns>
         public List<IImage> GetImages(string path)
         {
             try
@@ -60,7 +72,7 @@ namespace OCR.Processors.Handlers
                             pdf2PNG.Save(memoryStream, ImageFormat.Png);
                             using (var bmp = new Bitmap(memoryStream))
                             {
-                                imgs.Add(new Image<Bgr, byte>(bmp));
+                                imgs.Add(new Image<Bgr, byte>(bmp).Mat);
                             }
                         }
                     }

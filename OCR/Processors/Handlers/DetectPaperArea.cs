@@ -16,7 +16,7 @@ namespace OCR.Processors.Handlers
     {
         #region static
 
-        public static DetectPaperArea MakeInstance()
+        public static IDetectPaperArea MakeInstance()
         {
             return new DetectPaperArea();
         }
@@ -28,6 +28,7 @@ namespace OCR.Processors.Handlers
         }
         #endregion
         #region interface
+        
         /// <summary>
         /// 
         /// </summary>
@@ -38,8 +39,7 @@ namespace OCR.Processors.Handlers
         {
             if (imgmat == null)
                 return (null, null, RotatedRect.Empty);
-            Mat mat = imgmat as Mat;
-            if (mat == null)
+            if (!(imgmat is Mat mat))
                 throw new Exception("imgmat must be Mat object.");
             RotatedRect rotate = lastrotatedrect;
             Image<Bgr, byte> original = mat.ToImage<Bgr, byte>();
@@ -49,14 +49,13 @@ namespace OCR.Processors.Handlers
             using (Image<Bgr, byte> imgColor = original.Resize(factor, Inter.Linear))
             {
                 /// Convert to Gray image and try to make edges more distinct
-                using (Image<Gray, byte> imGray = imgColor.Convert<Gray, byte>().PyrDown().PyrUp())
+                using (Image<Gray, byte> imGray = imgColor.Convert<Gray, byte>().PyrUp().PyrDown().ThresholdToZeroInv(new Gray(250)))
                 {
+                    imGray._EqualizeHist();
+                    var thre = imGray.GetAverage();
                     //// Remove noise
                     using (var imGrayAfterPyr = imGray
-                        .ThresholdBinary(new Gray(150), new Gray(255))
-                        // Tách các khu vực ra thành từng thành phần riêng lẽ
-                        .Erode(3)
-                        //.ThresholdAdaptive(new Gray(255), AdaptiveThresholdType.GaussianC, ThresholdType.Binary, 5, new Gray(0))
+                        .ThresholdBinary(thre, new Gray(255))
                         )
                     {
                         using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
@@ -67,7 +66,6 @@ namespace OCR.Processors.Handlers
                                 .Select(i => contours[i])
                                 .OrderByDescending(c => CvInvoke.ContourArea(c))
                                 .Take(5);
-
                             foreach (var c in contourlist)
                             {
                                 using (VectorOfPoint v = new VectorOfPoint())

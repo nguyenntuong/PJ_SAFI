@@ -22,6 +22,7 @@ using OCR.DAO.Locals;
 using OCR.Utils.Extensions.Objects;
 using OCR.Utils.Extensions.Structs;
 using OCR.Views.Forms.ForTest;
+using OCR.Processors.Interfaces;
 
 namespace OCR.Views.Forms
 {
@@ -34,6 +35,7 @@ namespace OCR.Views.Forms
         private readonly IAppConfig _appConfig = AppConfig.DefaultInstance();
         private readonly ITesseractLanguages _tesseractLang = TesseractLanguages.DefaultInstance();
         private readonly ITempFilesResource<IImage> _tempFiles = TempFilesImageResource<IImage>.DefaultInstance();
+        private readonly IImportImage _importImage = ImportImage.Instance(DetectPaperArea.MakeInstance());
         #endregion
         /// <summary>
         /// Danh sách vùng đang được chọn
@@ -257,7 +259,7 @@ namespace OCR.Views.Forms
                 return;
             }
             using (var testForm = new ShowImageForm(
-                _image.GetOriginalImage(), 
+                _image.GetOriginalImage(),
                 _regions.Select(r => new ROI(
                     r.RegionName
                  , r.Language
@@ -294,7 +296,7 @@ namespace OCR.Views.Forms
                 ).ToList();
                 _roiProfiles.AddOrUpdateRegionProfile(CurrentRegionProfile);
             }
-            _appConfig.SetConfig<ROIProfile>("CurrentRegionProfile",CurrentRegionProfile);
+            _appConfig.SetConfig<ROIProfile>("CurrentRegionProfile", CurrentRegionProfile);
             this.Close();
         }
 
@@ -474,12 +476,12 @@ namespace OCR.Views.Forms
             };
             return tempProfile;
         }
-        
+
         private void ClearCancelPoint()
         {
             _pointsForDrawRect.Clear();
         }
-        
+
         //TODO fix lỗi khi người dùng thay đổi kích thức cửa sổ dẫn đến vẽ sai
         private void DrawRectangles(ROI activeegion = null, bool needRefresh = true)
         {
@@ -506,7 +508,7 @@ namespace OCR.Views.Forms
                 }
             }
         }
-        
+
         /// <summary>
         /// Kiểm tra xem ảnh mẩu và cấu hình hiện tại có khớp với nhau không
         /// </summary>
@@ -584,15 +586,10 @@ namespace OCR.Views.Forms
                 case string fileName:
                     try
                     {
-                        var ext = Path.GetExtension(fileName);
-                        if (Pdf2Image.FileTypeSupport.Contains(ext))
-                        {
-                            var convert = Pdf2Image.DefaultInstance();
-                            _image = new CImage(convert.GetImages(fileName).FirstOrDefault());
-                        }
-                        else if (CImage.ImageTypeSupport.Contains(ext))
-                        {
-                            _image = new CImage(fileName);
+                        var images = _importImage.ImportFromFile(fileName);
+                        if (images.Count() > 0)
+                        {                            
+                            _image = images.First();
                         }
                         else
                         {

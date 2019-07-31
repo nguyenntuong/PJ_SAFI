@@ -43,7 +43,6 @@ namespace OCR.Processors.Handlers
         private Image<Gray, byte> _afterProcessImage = null;
 
         private string _pathImage = null;
-        private bool isEnhance = false;
 
         public CImage(string filepath)
         {
@@ -63,13 +62,15 @@ namespace OCR.Processors.Handlers
             _pathImage = null;
             switch (image)
             {
+                case Mat img:
+                    _originalImage = img.ToImage<Bgr,byte>();
+                    break;
                 case Image<Bgr, byte> img:
                     _originalImage = img;
                     break;
                 case Image<Gray, byte> img:
                     _originalImage = img?.Convert<Bgr, byte>();
                     _afterProcessImage = img;
-                    isEnhance = true;
                     break;
                 default:
                     _originalImage = null;
@@ -89,7 +90,6 @@ namespace OCR.Processors.Handlers
                 .Resize(factor, Inter.Cubic)
                 .SmoothGaussian(3)
                 .Convert<Gray, byte>();
-            isEnhance = true;
         }
         #endregion
         #region interface
@@ -129,7 +129,7 @@ namespace OCR.Processors.Handlers
         public IImage RotateLeft()
         {
             _originalImage = (GetOriginalImage() as Image<Bgr, byte>)?.Rotate(-90, new Bgr(255, 255, 255), false);
-            _afterProcessImage = (GetAfterProcessImage() as Image<Gray, byte>).Rotate(-90, new Gray(255), false);
+            _afterProcessImage = (GetAfterProcessImage() as Image<Gray, byte>)?.Rotate(-90, new Gray(255), false);
             return _originalImage;
         }
         /// <summary>
@@ -139,7 +139,7 @@ namespace OCR.Processors.Handlers
         public IImage RotateRight()
         {
             _originalImage = (GetOriginalImage() as Image<Bgr, byte>)?.Rotate(90, new Bgr(255, 255, 255), false);
-            _afterProcessImage = (GetAfterProcessImage() as Image<Gray, byte>).Rotate(90, new Gray(255), false);
+            _afterProcessImage = (GetAfterProcessImage() as Image<Gray, byte>)?.Rotate(90, new Gray(255), false);
             return _originalImage;
         }
         /// <summary>
@@ -148,7 +148,7 @@ namespace OCR.Processors.Handlers
         /// <returns>Image<Gray,byte></returns>
         public IImage ThresholdBinary(int threshold)
         {
-            var imgThres = (GetOriginalImage() as Image<Bgr, byte>).Convert<Gray, byte>().ThresholdBinary(new Gray(threshold), new Gray(255));
+            var imgThres = (GetOriginalImage() as Image<Bgr, byte>)?.Convert<Gray, byte>().ThresholdBinary(new Gray(threshold), new Gray(255));
             return imgThres;
         }
 
