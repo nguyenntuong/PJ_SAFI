@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using DirectShowLib;
 
 namespace OCR.Utils.Helpers.DriverControls
 {
-    static class CameraControl
+    internal static class CameraControl
     {
         public static List<string> GetCameraDevice()
         {
@@ -15,7 +11,7 @@ namespace OCR.Utils.Helpers.DriverControls
             List<string> devices = new List<string>();
             for (int i = 0; i < systemCamereas.Length; i++)
             {
-                var cam = systemCamereas[i];
+                DsDevice cam = systemCamereas[i];
                 devices.Add(cam.Name);
             }
             return devices;

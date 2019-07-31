@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using OCR.Models.Locals;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
+using OCR.Models.Locals;
 using OCR.Utils.Extensions.UIs;
 
 namespace OCR.Views.Additions.Dialogs
@@ -66,13 +59,13 @@ namespace OCR.Views.Additions.Dialogs
             _regionProfile.Name = txt_ProfileName.Text.Trim();
             _regionProfile.PaperSize = cbb_PaperSize.SelectedItem.ToString().Trim();
             DialogResult = DialogResult.OK;
-            this.Close();
+            Close();
         }
 
         private void Btn_Cancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-            this.Close();
+            Close();
         }
         #endregion
     }

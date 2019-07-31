@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -24,7 +18,7 @@ namespace OCR.Views.Additions.Dialogs
         {
             using (SelectImageFromCameraDialog dialog = new SelectImageFromCameraDialog())
             {
-                var res = dialog.ShowDialog();
+                DialogResult res = dialog.ShowDialog();
                 img = res == DialogResult.OK ? dialog._image : null;
                 return res;
             }
@@ -48,14 +42,23 @@ namespace OCR.Views.Additions.Dialogs
 
         private void BackgroundWorkerForVideoCapture_DoWork(object sender, DoWorkEventArgs e)
         {
-            var bw = sender as BackgroundWorker;
+            BackgroundWorker bw = sender as BackgroundWorker;
             if (e.Argument == null)
+            {
                 return;
+            }
+
             if (!(e.Argument is int))
+            {
                 return;
+            }
+
             int camIndex = (int)e.Argument;
             if (camIndex < 0)
+            {
                 return;
+            }
+
             using (VideoCapture capture = new VideoCapture(camIndex))
             {
                 using (Mat m = new Mat())
@@ -108,7 +111,10 @@ namespace OCR.Views.Additions.Dialogs
         private void Btn_SelectCapture_Click(object sender, EventArgs e)
         {
             if (backgroundWorkerForVideoCapture.IsBusy)
+            {
                 backgroundWorkerForVideoCapture.CancelAsync();
+            }
+
             if (CameraDeviceSelectDialog.ShowCustomDialog(out int camIndex) != DialogResult.OK)
             {
                 CamIndex = -1;
@@ -128,7 +134,7 @@ namespace OCR.Views.Additions.Dialogs
                 return;
             }
             _pauseVideoCapture = true;
-            var paperArea = _detectPaper.ExtractPaperArea(_resultCache.imgOriginal, _resultCache.rotated);
+            IImage paperArea = _detectPaper.ExtractPaperArea(_resultCache.imgOriginal, _resultCache.rotated);
             if (paperArea == null)
             {
                 MessageBox.Show("Không tìm thấy.", "Không thể tìm thấy khu vực nhận dạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -142,7 +148,7 @@ namespace OCR.Views.Additions.Dialogs
         private void Btn_Exit_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-            this.Close();
+            Close();
         }
 
         private void Btn_Apply_Click(object sender, EventArgs e)
@@ -153,7 +159,7 @@ namespace OCR.Views.Additions.Dialogs
                 return;
             }
             DialogResult = DialogResult.OK;
-            this.Close();
+            Close();
         }
         #endregion
     }

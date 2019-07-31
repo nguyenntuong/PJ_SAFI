@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using OCR.Models.Locals;
-using OCR.Utils.Extensions.UIs;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
+using OCR.Models.Locals;
+using OCR.Utils.Extensions.UIs;
 
 namespace OCR.Views.Additions.Dialogs
 {
@@ -124,18 +117,17 @@ namespace OCR.Views.Additions.Dialogs
         private void Btn_Accept_Click(object sender, EventArgs e)
         {
             string nameProfile = txt_ProfileName.Text.Trim();
-            int width, height;
             if (string.IsNullOrWhiteSpace(nameProfile))
             {
                 MessageBox.Show("Vui lòng không để trống tên profile.", "Thiếu thông tin.");
                 return;
             }
-            if (!int.TryParse(txt_ProfileWidth.Text.Trim(), out width))
+            if (!int.TryParse(txt_ProfileWidth.Text.Trim(), out int width))
             {
                 MessageBox.Show("Vui lòng chỉ nhập số khi khai báo kích thước giấy.", "Thiếu thông tin.");
                 return;
             }
-            if (!int.TryParse(txt_ProfileHeight.Text.Trim(), out height))
+            if (!int.TryParse(txt_ProfileHeight.Text.Trim(), out int height))
             {
                 MessageBox.Show("Vui lòng chỉ nhập số khi khai báo kích thước giấy.", "Thiếu thông tin.");
                 return;
@@ -151,7 +143,10 @@ namespace OCR.Views.Additions.Dialogs
                 }
             }
             if (_selectedPaperProfile == null)
+            {
                 _selectedPaperProfile = new PaperProfile("", 0, 0);
+            }
+
             _selectedPaperProfile.Name = nameProfile;
             _selectedPaperProfile.Width = width;
             _selectedPaperProfile.Height = height;
@@ -160,7 +155,7 @@ namespace OCR.Views.Additions.Dialogs
             if (_createCommand)
             {
                 DialogResult = DialogResult.OK;
-                this.Close();
+                Close();
             }
             else
             {
@@ -170,7 +165,7 @@ namespace OCR.Views.Additions.Dialogs
 
         private void Cbb_PaperProfile_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var cbb = sender as ComboBox;
+            ComboBox cbb = sender as ComboBox;
             if (cbb.SelectedItem != null)
             {
                 _selectedPaperProfile = _paperResource.GetPaperProfile(cbb_PaperProfile.SelectedItem.ToString());
@@ -209,12 +204,12 @@ namespace OCR.Views.Additions.Dialogs
             if (_createCommand)
             {
                 DialogResult = DialogResult.Cancel;
-                this.Close();
+                Close();
             }
             else
             {
                 DialogResult = DialogResult.OK;
-                this.Close();
+                Close();
             }
         }
 

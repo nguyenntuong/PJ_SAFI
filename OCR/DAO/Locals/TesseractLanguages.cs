@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OCR.DAO.Interfaces;
 
 namespace OCR.DAO.Locals
 {
-    class TesseractLanguages : ITesseractLanguages
+    internal class TesseractLanguages : ITesseractLanguages
     {
         #region static
         private static object _locker = new object();

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using OCR.DAO.Interfaces;
 
 namespace OCR.DAO.Locals
 {
-    class AppConfig : IAppConfig
+    internal class AppConfig : IAppConfig
     {
         #region static
         private static object _lockerObject = new object();

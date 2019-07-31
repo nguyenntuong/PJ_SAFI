@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NHunspell;
 
 namespace OCR.Libraries.Handlers
 {
-    static class HunspellHandler
+    internal static class HunspellHandler
     {
         #region static
         private const string _binPath = @"Libraries/";

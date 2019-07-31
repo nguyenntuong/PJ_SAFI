@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace OCR.DAO.Interfaces
 {
-    interface IHunspellDictionaryLanguages
+    internal interface IHunspellDictionaryLanguages
     {
         List<string> Languages { get; }
         KeyValuePair<string, string> GetDictionaryPath(string langName);

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OCR.Models.Locals;
 using ROI = OCR.Models.Locals.ROI;
@@ -21,14 +17,17 @@ namespace OCR.Utils.Extensions.Structs
         public static Rectangle ConvertToCurrentClientSize(this Rectangle rectangle, PictureBox picBox)
         {
             if (picBox == null)
+            {
                 return Rectangle.Empty;
-            var img = picBox.Image;
-            var pb = picBox;
-            var wfactor = (double)img.Width / pb.ClientSize.Width;
-            var hfactor = (double)img.Height / pb.ClientSize.Height;
+            }
 
-            var resizeFactor = Math.Max(wfactor, hfactor);
-            var imageSize = new Size((int)(img.Width / resizeFactor), (int)(img.Height / resizeFactor));
+            Image img = picBox.Image;
+            PictureBox pb = picBox;
+            double wfactor = (double)img.Width / pb.ClientSize.Width;
+            double hfactor = (double)img.Height / pb.ClientSize.Height;
+
+            double resizeFactor = Math.Max(wfactor, hfactor);
+            Size imageSize = new Size((int)(img.Width / resizeFactor), (int)(img.Height / resizeFactor));
             rectangle.X = (int)((rectangle.X - (picBox.Width / 2 - imageSize.Width / 2)) * resizeFactor);
             rectangle.Y = (int)(rectangle.Y * resizeFactor);
             rectangle.Width = (int)(rectangle.Width * resizeFactor);
@@ -44,11 +43,14 @@ namespace OCR.Utils.Extensions.Structs
         public static Rectangle ConvertToActualyImageSizeWithAcc(this Rectangle rectangle, PictureBox picBox)
         {
             if (picBox == null)
+            {
                 return Rectangle.Empty;
-            var img = picBox.Image;
-            var pb = picBox;
-            var wfactor = (int)((double)(img.Width * ROI.Accuracy) / pb.ClientSize.Width);
-            var hfactor = (int)((double)(img.Height * ROI.Accuracy) / pb.ClientSize.Height);
+            }
+
+            Image img = picBox.Image;
+            PictureBox pb = picBox;
+            int wfactor = (int)((double)(img.Width * ROI.Accuracy) / pb.ClientSize.Width);
+            int hfactor = (int)((double)(img.Height * ROI.Accuracy) / pb.ClientSize.Height);
 
             rectangle.Y = rectangle.Y * hfactor;
             rectangle.X = rectangle.X * wfactor;
@@ -76,16 +78,19 @@ namespace OCR.Utils.Extensions.Structs
         public static Rectangle ConvertActualyImageSizeToPictureClientSize(this Rectangle rectangle, PictureBox picBox)
         {
             if (picBox == null)
+            {
                 return Rectangle.Empty;
-            var img = picBox.Image;
-            var pb = picBox;
-            var wfactor = (int)(((double)img.Width / pb.ClientSize.Width) * ROI.Accuracy);
-            var hfactor = (int)(((double)img.Height / pb.ClientSize.Height) * ROI.Accuracy);
+            }
 
-            rectangle.Y = (int)(rectangle.Y / hfactor);
-            rectangle.X = (int)(rectangle.X / wfactor);
-            rectangle.Width = (int)(rectangle.Width / wfactor);
-            rectangle.Height = (int)(rectangle.Height / hfactor);
+            Image img = picBox.Image;
+            PictureBox pb = picBox;
+            int wfactor = (int)(((double)img.Width / pb.ClientSize.Width) * ROI.Accuracy);
+            int hfactor = (int)(((double)img.Height / pb.ClientSize.Height) * ROI.Accuracy);
+
+            rectangle.Y = rectangle.Y / hfactor;
+            rectangle.X = rectangle.X / wfactor;
+            rectangle.Width = rectangle.Width / wfactor;
+            rectangle.Height = rectangle.Height / hfactor;
 
             return rectangle;
         }
@@ -100,9 +105,15 @@ namespace OCR.Utils.Extensions.Structs
         public static Rectangle ConvertActualyImageSizeToImageResize(this Rectangle rectangle, PaperProfile paperProfile, Image img)
         {
             if (paperProfile == null)
+            {
                 return Rectangle.Empty;
+            }
+
             if (img == null)
+            {
                 return Rectangle.Empty;
+            }
+
             double xRatio = (double)rectangle.X / paperProfile.Width;
             double yRatio = (double)rectangle.Y / paperProfile.Height;
             double widthRatio = (double)rectangle.Width / paperProfile.Width;

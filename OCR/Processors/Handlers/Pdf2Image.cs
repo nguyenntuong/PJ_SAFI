@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Ghostscript.NET;
@@ -16,13 +12,13 @@ using OCR.Processors.Interfaces;
 
 namespace OCR.Processors.Handlers
 {
-    class Pdf2Image : IPdf2Image
+    internal class Pdf2Image : IPdf2Image
     {
         #region static
         /// <summary>
         /// File need to Convert
         /// </summary>
-        public readonly static IReadOnlyList<string> FileTypeSupport = new List<string>
+        public static readonly IReadOnlyList<string> FileTypeSupport = new List<string>
         {
             ".pdf"
         };
@@ -60,17 +56,17 @@ namespace OCR.Processors.Handlers
         {
             try
             {
-                using (var rasterizer = new GhostscriptRasterizer())
+                using (GhostscriptRasterizer rasterizer = new GhostscriptRasterizer())
                 {
                     rasterizer.Open(path, _ghostScript, false);
-                    var imgs = new List<IImage>();
+                    List<IImage> imgs = new List<IImage>();
                     for (int i = 1; i <= rasterizer.PageCount; i++)
                     {
                         using (MemoryStream memoryStream = new MemoryStream())
                         {
-                            var pdf2PNG = rasterizer.GetPage(300, 300, i);
+                            Image pdf2PNG = rasterizer.GetPage(300, 300, i);
                             pdf2PNG.Save(memoryStream, ImageFormat.Png);
-                            using (var bmp = new Bitmap(memoryStream))
+                            using (Bitmap bmp = new Bitmap(memoryStream))
                             {
                                 imgs.Add(new Image<Bgr, byte>(bmp).Mat);
                             }

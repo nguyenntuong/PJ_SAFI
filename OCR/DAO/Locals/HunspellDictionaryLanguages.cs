@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NHunspell;
 using OCR.DAO.Interfaces;
 using OCR.Libraries.Handlers;
 
 namespace OCR.DAO.Locals
 {
-    class HunspellDictionaryLanguages : IHunspellDictionaryLanguages
+    internal class HunspellDictionaryLanguages : IHunspellDictionaryLanguages
     {
         #region static
         private static object _locker = new object();
@@ -54,8 +50,8 @@ namespace OCR.DAO.Locals
         /// </returns>
         public KeyValuePair<string, string> GetDictionaryPath(string langName)
         {
-            var affPath = Path.Combine(_path, $"/{langName}.aff");
-            var dicPath = Path.Combine(_path, $"/{langName}.dic");
+            string affPath = Path.Combine(_path, $"/{langName}.aff");
+            string dicPath = Path.Combine(_path, $"/{langName}.dic");
             if (!File.Exists(affPath) || !File.Exists(dicPath))
             {
                 return new KeyValuePair<string, string>("", "");

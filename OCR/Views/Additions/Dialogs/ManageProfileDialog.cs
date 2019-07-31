@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using OCR.Models.Locals;
-using OCR.Utils.Extensions.UIs;
+using Emgu.CV;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
-using Emgu.CV;
+using OCR.Models.Locals;
+using OCR.Utils.Extensions.UIs;
 
 namespace OCR.Views.Additions.Dialogs
 {
@@ -58,7 +51,7 @@ namespace OCR.Views.Additions.Dialogs
 
         private void Lst_Profiles_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var lst = sender as ListBox;
+            ListBox lst = sender as ListBox;
             if (lst.SelectedItem != null)
             {
                 _selectedRegionProfile = _regionProfiles.GetRegionProfile(lst.SelectedItem.ToString());
@@ -88,7 +81,10 @@ namespace OCR.Views.Additions.Dialogs
         private void Btn_Delete_Click(object sender, EventArgs e)
         {
             if (_selectedRegionProfile == null)
+            {
                 return;
+            }
+
             if (MessageBox.Show("Có chắc là xoá cấu hình này.", "Xác nhận.", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning) != DialogResult.OK)
             {
                 return;
@@ -102,7 +98,10 @@ namespace OCR.Views.Additions.Dialogs
         private void Btn_Update_Click(object sender, EventArgs e)
         {
             if (_selectedRegionProfile == null)
+            {
                 return;
+            }
+
             if (MessageBox.Show("Bạn có muốn cập nhật cấu hình này.", "Xác nhận.", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) != DialogResult.OK)
             {
                 return;
@@ -115,8 +114,11 @@ namespace OCR.Views.Additions.Dialogs
         private void Txt_ProfileName_TextChanged(object sender, EventArgs e)
         {
             if (_selectedRegionProfile == null)
+            {
                 return;
-            var txt = sender as TextBox;
+            }
+
+            TextBox txt = sender as TextBox;
             if (txt.Text != _selectedRegionProfile.Name)
             {
                 btn_Update.Enabled = true;
@@ -130,7 +132,7 @@ namespace OCR.Views.Additions.Dialogs
         private void Btn_Close_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.OK;
-            this.Close();
+            Close();
         }
         #endregion
     }

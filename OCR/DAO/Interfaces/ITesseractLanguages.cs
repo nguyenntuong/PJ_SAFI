@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace OCR.DAO.Interfaces
 {
-    interface ITesseractLanguages
+    internal interface ITesseractLanguages
     {
         string DefaultLanguage { get; }
         List<string> Languages { get; }

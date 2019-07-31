@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
 using WIA;
 
 namespace OCR.Utils.Helpers.DriverControls
 {
-    static class WIAScannerControl
+    internal static class WIAScannerControl
     {
         private const string wiaFormatBMP = "{B96B3CAB-0728-11D3-9D7B-0000F81EF32E}";
 
@@ -111,7 +107,7 @@ namespace OCR.Utils.Helpers.DriverControls
                     WIA.ICommonDialog wiaCommonDialog = new WIA.CommonDialog();
                     WIA.ImageFile image = (WIA.ImageFile)wiaCommonDialog.ShowTransfer(item, wiaFormatBMP, false);
                     // save to temp file
-                    var fileName = tempFiles.SaveFile(image);
+                    string fileName = tempFiles.SaveFile(image);
                     image = null;
                     // add file to output list
                     images.Add(fileName);
@@ -192,9 +188,11 @@ namespace OCR.Utils.Helpers.DriverControls
             }
             if (device != null)
             {
-                Dictionary<string, string> properties = new Dictionary<string, string>();
-                properties.Add(nameof(device.DeviceID), device.DeviceID);
-                properties.Add(nameof(device.Type), device.Type.ToString());
+                Dictionary<string, string> properties = new Dictionary<string, string>
+                {
+                    { nameof(device.DeviceID), device.DeviceID },
+                    { nameof(device.Type), device.Type.ToString() }
+                };
                 foreach (Property p in device.Properties)
                 {
                     properties.Add(p.Name, p.get_Value());

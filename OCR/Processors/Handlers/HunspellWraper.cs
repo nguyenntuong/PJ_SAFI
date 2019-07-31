@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 using NHunspell;
 using OCR.DAO.Interfaces;
@@ -12,7 +9,7 @@ using OCR.Processors.Interfaces;
 
 namespace OCR.Processors.Handlers
 {
-    class HunspellWraper : IHunspellWraper, IDisposable
+    internal class HunspellWraper : IHunspellWraper, IDisposable
     {
         #region static
         public static HunspellWraper Instace(string language)
@@ -33,7 +30,7 @@ namespace OCR.Processors.Handlers
                 throw new Exception("Language not found.");
             }
             _spc = new Hunspell();
-            var dicPath = _dictionaryLanguages.GetDictionaryPath(_lang);
+            KeyValuePair<string, string> dicPath = _dictionaryLanguages.GetDictionaryPath(_lang);
             _spc.Load(dicPath.Key, dicPath.Value);
         }
         #endregion
@@ -41,10 +38,13 @@ namespace OCR.Processors.Handlers
         public string SpellCheck(string word)
         {
             if (string.IsNullOrEmpty(word))
+            {
                 return "";
+            }
+
             if (!_spc.Spell(word))
             {
-                var sg = _spc.Suggest(word);
+                List<string> sg = _spc.Suggest(word);
                 if (sg.Count > 0)
                 {
                     word = sg[0];
@@ -56,7 +56,10 @@ namespace OCR.Processors.Handlers
         public string SpellChecks(string words)
         {
             if (string.IsNullOrEmpty(words))
+            {
                 return "";
+            }
+
             string[] word_arr = words.Split(' ');
             for (int i = 0; i < word_arr.Length; i++)
             {
@@ -67,7 +70,7 @@ namespace OCR.Processors.Handlers
                 }
                 if (!_spc.Spell(word))
                 {
-                    var sg = _spc.Suggest(word);
+                    List<string> sg = _spc.Suggest(word);
                     if (sg.Count > 0)
                     {
                         word_arr[i] = sg[0];
@@ -76,10 +79,12 @@ namespace OCR.Processors.Handlers
             }
             return string.Join(" ", words);
         }
+
         // Flag: Has Dispose already been called?
-        bool disposed = false;
+        private bool disposed = false;
+
         // Instantiate a SafeHandle instance.
-        SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
+        private SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
 
         // Public implementation of Dispose pattern callable by consumers.
         public void Dispose()
@@ -92,7 +97,9 @@ namespace OCR.Processors.Handlers
         protected virtual void Dispose(bool disposing)
         {
             if (disposed)
+            {
                 return;
+            }
 
             if (disposing)
             {

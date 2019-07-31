@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using OCR.Models.Locals;
 
 namespace OCR.DAO.Interfaces
 {
-    interface IPaperResource
+    internal interface IPaperResource
     {
         List<string> Profiles { get; }
         void AddOrUpdatePaperProfile(PaperProfile paperProfile);

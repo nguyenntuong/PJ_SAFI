@@ -4,25 +4,22 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
-using OCR.Models.Locals;
-using OCR.Processors.Handlers;
-using OCR.Utils.Enum;
-using OCR.Utils.Extensions.UIs;
-using OCR.Views.Additions.Dialogs;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
+using OCR.Models.Locals;
+using OCR.Processors.Handlers;
+using OCR.Processors.Interfaces;
+using OCR.Utils.Enum;
 using OCR.Utils.Extensions.Objects;
 using OCR.Utils.Extensions.Structs;
+using OCR.Utils.Extensions.UIs;
+using OCR.Views.Additions.Dialogs;
 using OCR.Views.Forms.ForTest;
-using OCR.Processors.Interfaces;
 
 namespace OCR.Views.Forms
 {
@@ -89,14 +86,17 @@ namespace OCR.Views.Forms
         private void BtnLoadImage_Click(object sender, EventArgs e)
         {
             pictureBox_ImgSample.Enabled = false;
-            var res = SelectFromDialog.ShowCustomDialog();
+            CustomDialogResult res = SelectFromDialog.ShowCustomDialog();
             switch (res)
             {
                 case CustomDialogResult.LocalFile:
-                    using (var openFile = new OpenFileDialog())
+                    using (OpenFileDialog openFile = new OpenFileDialog())
                     {
                         if (openFile.ShowDialog() != DialogResult.OK)
+                        {
                             return;
+                        }
+
                         backgroundWorkerLoadImage.RunWorkerAsync(openFile.FileName);
                     }
                     break;
@@ -131,9 +131,9 @@ namespace OCR.Views.Forms
                 _pointsForDrawRect.Add(e.Location);
                 if (_pointsForDrawRect.Count == 2)
                 {
-                    using (var vector = new VectorOfPoint(_pointsForDrawRect.ToArray()))
+                    using (VectorOfPoint vector = new VectorOfPoint(_pointsForDrawRect.ToArray()))
                     {
-                        var rect = CvInvoke.BoundingRectangle(vector);
+                        Rectangle rect = CvInvoke.BoundingRectangle(vector);
                         if (rect.Width > ROI.MINIMUNSIZE && rect.Height > ROI.MINIMUNSIZE)
                         {
                             using (Graphics g = pictureBox_ImgSample.CreateGraphics())
@@ -143,7 +143,7 @@ namespace OCR.Views.Forms
                                     g.DrawRectangle(p, rect);
                                 }
                             }
-                            var regionSelected = new ROI(
+                            ROI regionSelected = new ROI(
                                 $"Region_{_regionNumber++}"
                                 , _tesseractLang.DefaultLanguage
                                 , rect
@@ -167,9 +167,9 @@ namespace OCR.Views.Forms
         {
             if (!_isMouseButtonRelease)
             {
-                using (var vector = new VectorOfPoint(new[] { _pointsForDrawRect[0], e.Location }))
+                using (VectorOfPoint vector = new VectorOfPoint(new[] { _pointsForDrawRect[0], e.Location }))
                 {
-                    var rect = CvInvoke.BoundingRectangle(vector);
+                    Rectangle rect = CvInvoke.BoundingRectangle(vector);
                     using (Graphics g = pictureBox_ImgSample.CreateGraphics())
                     {
                         pictureBox_ImgSample.Refresh();
@@ -191,11 +191,17 @@ namespace OCR.Views.Forms
 
         private void LstBoxRectangles_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var list = sender as ListBox;
+            ListBox list = sender as ListBox;
             if (list.SelectedItem == null)
+            {
                 return;
+            }
+
             if (_image == null)
+            {
                 return;
+            }
+
             ROI r = (ROI)list.SelectedItem;
             DrawRectangles(r);
         }
@@ -227,7 +233,9 @@ namespace OCR.Views.Forms
         private void ToolStrip_btnChangeRegionName_Click(object sender, EventArgs e)
         {
             if (lstBoxRectangles.SelectedItem == null)
+            {
                 return;
+            }
 
             if (AddRegionDialog.ShowCustomDialog(_regions, (ROI)lstBoxRectangles.SelectedItem) == DialogResult.OK)
             {
@@ -237,9 +245,12 @@ namespace OCR.Views.Forms
 
         private void ToolStrip_btnDeleteRect_Click(object sender, EventArgs e)
         {
-            var list = lstBoxRectangles;
+            ListBox list = lstBoxRectangles;
             if (list.SelectedItem == null)
+            {
                 return;
+            }
+
             ROI r = (ROI)list.SelectedItem;
             _regions.Remove(r);
             list.UpdateUI(_regions);
@@ -258,7 +269,7 @@ namespace OCR.Views.Forms
                 MessageBox.Show("Bạn chưa chọn gì cả, hãy chọn các vùng trên ảnh, bằng cách kéo chuốt trên ảnh.", "Thông báo.");
                 return;
             }
-            using (var testForm = new ShowImageForm(
+            using (ShowImageForm testForm = new ShowImageForm(
                 _image.GetOriginalImage(),
                 _regions.Select(r => new ROI(
                     r.RegionName
@@ -285,7 +296,9 @@ namespace OCR.Views.Forms
                 return;
             }
             if (_regions.Count == 0 && _currentRegionProfile.Regions.Count > 0)
+            {
                 CurrentRegionProfile.Regions = _currentRegionProfile.Regions;
+            }
             else
             {
                 CurrentRegionProfile.Regions = _regions.Select(r => new ROI(r.RegionName
@@ -297,14 +310,17 @@ namespace OCR.Views.Forms
                 _roiProfiles.AddOrUpdateRegionProfile(CurrentRegionProfile);
             }
             _appConfig.SetConfig<ROIProfile>("CurrentRegionProfile", CurrentRegionProfile);
-            this.Close();
+            Close();
         }
 
         private void Btn_SaveAs_Click(object sender, EventArgs e)
         {
-            var tempProfile = RegionProfileValidateBeforeSave();
+            ROIProfile tempProfile = RegionProfileValidateBeforeSave();
             if (tempProfile == null)
+            {
                 return;
+            }
+
             if (ProfileSaveDialog.ShowCustomDialog(tempProfile) == DialogResult.OK)
             {
                 _roiProfiles.AddOrUpdateRegionProfile(tempProfile);
@@ -340,12 +356,12 @@ namespace OCR.Views.Forms
 
         private void ThoátToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void Cbb_Profile_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var cbb = sender as ComboBox;
+            ComboBox cbb = sender as ComboBox;
             if (cbb.SelectedItem != null)
             {
                 CurrentRegionProfile = _roiProfiles.GetRegionProfile(cbb.SelectedItem.ToString());
@@ -377,7 +393,7 @@ namespace OCR.Views.Forms
         private void ToolStrip_btnClearAll_Click(object sender, EventArgs e)
         {
             btn_Save.Enabled = false;
-            var lst = lstBoxRectangles;
+            ListBox lst = lstBoxRectangles;
             CurrentRegionProfile = null;
             _regions.Clear();
             lst.UpdateUI(_regions);
@@ -386,9 +402,12 @@ namespace OCR.Views.Forms
 
         private void Btn_Save_Click(object sender, EventArgs e)
         {
-            var tempProfile = RegionProfileValidateBeforeSave();
+            ROIProfile tempProfile = RegionProfileValidateBeforeSave();
             if (tempProfile == null)
+            {
                 return;
+            }
+
             if (cbb_RegionProfile.SelectedItem == null)
             {
                 MessageBox.Show("Không xác định được Profile hiện tại, chọn lại.", "Lỗi không xác định", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -402,7 +421,7 @@ namespace OCR.Views.Forms
         private void Btn_ManageProfile_Click(object sender, EventArgs e)
         {
             ManageProfileDialog.ShowCustomDialog();
-            var lstProfile = _roiProfiles.Profiles;
+            List<string> lstProfile = _roiProfiles.Profiles;
             cbb_RegionProfile.UpdateUI(lstProfile, lstProfile.FirstOrDefault());
         }
 
@@ -462,7 +481,7 @@ namespace OCR.Views.Forms
                     return null;
                 }
             }
-            var tempProfile = new ROIProfile
+            ROIProfile tempProfile = new ROIProfile
             {
                 TemplateFile = _tempFiles.SaveFile(_image.GetOriginalImage()),
                 Name = "",
@@ -490,14 +509,19 @@ namespace OCR.Views.Forms
                 pictureBox_ImgSample.Refresh();
             }
             if (_regions.Count == 0)
+            {
                 return;
+            }
+
             using (Graphics g = pictureBox_ImgSample.CreateGraphics())
             {
                 using (Pen p = new Pen(Brushes.Aqua))
                 {
-                    var rectArray = _regions.Where(r => !r.Equals(activeegion)).Select(r => r.RegionRectangle).ToArray();
+                    Rectangle[] rectArray = _regions.Where(r => !r.Equals(activeegion)).Select(r => r.RegionRectangle).ToArray();
                     if (rectArray.Length > 0)
+                    {
                         g.DrawRectangles(p, rectArray);
+                    }
                 }
                 if (activeegion != null)
                 {
@@ -520,7 +544,7 @@ namespace OCR.Views.Forms
             }
             if (CurrentRegionProfile != null)
             {
-                var paperSize = _paperProfiles.GetPaperProfile(CurrentRegionProfile.PaperSize);
+                PaperProfile paperSize = _paperProfiles.GetPaperProfile(CurrentRegionProfile.PaperSize);
                 if (paperSize == null)
                 {
                     MessageBox.Show("Định nghĩa kích thước ảnh cho cấu hình này không tồn tại.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -531,7 +555,7 @@ namespace OCR.Views.Forms
                 {
                     if (fromCbb && !string.IsNullOrEmpty(CurrentRegionProfile.TemplateFile))
                     {
-                        var fullPath = _tempFiles.GetFullPath(CurrentRegionProfile.TemplateFile);
+                        string fullPath = _tempFiles.GetFullPath(CurrentRegionProfile.TemplateFile);
                         if (fullPath.CheckIfIsFileAndExist())
                         {
                             _image = new CImage(fullPath);
@@ -586,9 +610,9 @@ namespace OCR.Views.Forms
                 case string fileName:
                     try
                     {
-                        var images = _importImage.ImportFromFile(fileName);
+                        IEnumerable<CImage> images = _importImage.ImportFromFile(fileName);
                         if (images.Count() > 0)
-                        {                            
+                        {
                             _image = images.First();
                         }
                         else

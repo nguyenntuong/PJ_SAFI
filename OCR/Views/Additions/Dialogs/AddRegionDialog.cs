@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using OCR.Models.Locals;
-using OCR.Utils.Extensions.UIs;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
+using OCR.Models.Locals;
+using OCR.Utils.Extensions.UIs;
 
 namespace OCR.Views.Additions.Dialogs
 {
@@ -70,9 +65,15 @@ namespace OCR.Views.Additions.Dialogs
             {
                 string combiePattern = "";
                 if (checkBox_AZaz.Checked)
+                {
                     combiePattern += @"A-Za-z";
+                }
+
                 if (checkBox_09.Checked)
+                {
                     combiePattern += @"0-9";
+                }
+
                 _regionInfer.RegexPattern = combiePattern;
                 combiePattern = "";
                 if (!string.IsNullOrEmpty(txt_SpecialCharacter.Text))
@@ -84,18 +85,18 @@ namespace OCR.Views.Additions.Dialogs
             _regionInfer.RegionName = txt_Identifer.Text;
             _regionInfer.Language = cbb_Language.SelectedItem.ToString().Trim();
             DialogResult = DialogResult.OK;
-            this.Close();
+            Close();
         }
 
         private void Btn_Cancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-            this.Close();
+            Close();
         }
 
         private void CheckBox_AllMatch_CheckedChanged(object sender, EventArgs e)
         {
-            var cb = sender as CheckBox;
+            CheckBox cb = sender as CheckBox;
             if (cb.Checked)
             {
                 checkBox_09.Checked = checkBox_AZaz.Checked = true;

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.OCR;
 using Emgu.CV.Structure;
@@ -16,7 +14,7 @@ using OCR.Utils.Extensions.Structs;
 
 namespace OCR.Processors.Handlers
 {
-    class OCRWraper : IOCR, IOCRROI
+    internal class OCRWraper : IOCR, IOCRROI
     {
         #region static
         private static ITesseractLanguages _languages = TesseractLanguages.DefaultInstance();
@@ -88,7 +86,10 @@ namespace OCR.Processors.Handlers
         public string GetUtf8Text(ICImage image)
         {
             if (image == null)
+            {
                 return "";
+            }
+
             _tesseracts[_currentLanguages].SetImage(image.GetAfterProcessImage());
             return _tesseracts[_currentLanguages].GetUTF8Text();
         }
@@ -96,7 +97,10 @@ namespace OCR.Processors.Handlers
         public string GetUtf8Text(IImage image)
         {
             if (image == null)
+            {
                 return "";
+            }
+
             _tesseracts[_currentLanguages].SetImage(image);
             return _tesseracts[_currentLanguages].GetUTF8Text();
         }
@@ -104,10 +108,13 @@ namespace OCR.Processors.Handlers
         public string GetUtf8Text(IImage image, Rectangle roi)
         {
             if (image == null)
+            {
                 return "";
+            }
+
             using (Image<Gray, byte> gray = new Image<Gray, byte>(image.Bitmap))
             {
-                var roiCrop = gray.Copy(roi);
+                Image<Gray, byte> roiCrop = gray.Copy(roi);
                 _tesseracts[_currentLanguages].SetImage(roiCrop);
                 return _tesseracts[_currentLanguages].GetUTF8Text();
             }
@@ -116,28 +123,37 @@ namespace OCR.Processors.Handlers
         public List<Dictionary<string, string>> GetUtf8TextBaseOnRegions(ICImage image, ROIProfile regions, out IImage imgdrawed)
         {
             imgdrawed = null;
-            var result = new List<Dictionary<string, string>>();
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
             if (image == null)
+            {
                 return result;
+            }
+
             if (regions == null)
+            {
                 return result;
+            }
+
             IPaperResource paperResource = PaperResource.DefaultInstance();
             PaperProfile paperProfile = paperResource.GetPaperProfile(regions.PaperSize);
             if (paperProfile == null)
-                return result;
-            InitialLaguagePack(regions);
-            var onePage = new Dictionary<string, string>();
-            var imgThre = image.GetAfterProcessImage() as Image<Gray, byte>;
-            var imgTmp = imgThre.Copy().Convert<Bgr, byte>();
-            foreach (var region in regions.Regions)
             {
-                var rect = region.RegionRectangle.ConvertActualyImageSizeToImageResize(paperProfile, imgThre.Bitmap);
+                return result;
+            }
+
+            InitialLaguagePack(regions);
+            Dictionary<string, string> onePage = new Dictionary<string, string>();
+            Image<Gray, byte> imgThre = image.GetAfterProcessImage() as Image<Gray, byte>;
+            Image<Bgr, byte> imgTmp = imgThre.Copy().Convert<Bgr, byte>();
+            foreach (ROI region in regions.Regions)
+            {
+                Rectangle rect = region.RegionRectangle.ConvertActualyImageSizeToImageResize(paperProfile, imgThre.Bitmap);
                 imgThre.ROI = rect;
                 imgTmp.Draw(rect, new Bgr(Color.Red), 1);
                 _tesseracts[region.Language].SetImage(imgThre.Copy());
                 string txt = _tesseracts[region.Language].GetUTF8Text();
                 MatchCollection ms = Regex.Matches(txt, region.GenaratedRegexPattern, RegexOptions.Multiline);
-                var m = ms.Cast<Match>().OrderByDescending(s => s.Length).Take(1).FirstOrDefault();
+                Match m = ms.Cast<Match>().OrderByDescending(s => s.Length).Take(1).FirstOrDefault();
                 onePage.Add(region.RegionName, m?.Value);
                 imgThre.ROI = Rectangle.Empty;
             }
@@ -149,28 +165,37 @@ namespace OCR.Processors.Handlers
         public List<Dictionary<string, string>> GetUtf8TextBaseOnRegions(IImage image, ROIProfile regions, out IImage imgdrawed)
         {
             imgdrawed = null;
-            var result = new List<Dictionary<string, string>>();
+            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
             if (image == null)
+            {
                 return result;
+            }
+
             if (regions == null)
+            {
                 return result;
+            }
+
             IPaperResource paperResource = PaperResource.DefaultInstance();
             PaperProfile paperProfile = paperResource.GetPaperProfile(regions.PaperSize);
             if (paperProfile == null)
-                return result;
-            InitialLaguagePack(regions);
-            var onePage = new Dictionary<string, string>();
-            var imgOriginal = image is Image<Gray, byte> ? image as Image<Gray, byte> : new Image<Gray, byte>(image.Bitmap);
-            var imgColor = imgOriginal.Copy().Convert<Bgr, byte>();
-            foreach (var region in regions.Regions)
             {
-                var rect = region.RegionRectangle.ConvertActualyImageSizeToImageResize(paperProfile, imgOriginal.Bitmap);
+                return result;
+            }
+
+            InitialLaguagePack(regions);
+            Dictionary<string, string> onePage = new Dictionary<string, string>();
+            Image<Gray, byte> imgOriginal = image is Image<Gray, byte> ? image as Image<Gray, byte> : new Image<Gray, byte>(image.Bitmap);
+            Image<Bgr, byte> imgColor = imgOriginal.Copy().Convert<Bgr, byte>();
+            foreach (ROI region in regions.Regions)
+            {
+                Rectangle rect = region.RegionRectangle.ConvertActualyImageSizeToImageResize(paperProfile, imgOriginal.Bitmap);
                 imgOriginal.ROI = rect;
                 imgColor.Draw(rect, new Bgr(Color.Red), 1);
                 _tesseracts[region.Language].SetImage(imgOriginal.Copy());
                 string txt = _tesseracts[region.Language].GetUTF8Text();
                 MatchCollection ms = Regex.Matches(txt, region.GenaratedRegexPattern, RegexOptions.Multiline);
-                var m = ms.Cast<Match>().OrderByDescending(s => s.Length).Take(1).FirstOrDefault();
+                Match m = ms.Cast<Match>().OrderByDescending(s => s.Length).Take(1).FirstOrDefault();
                 onePage.Add(region.RegionName, m?.Value);
                 imgOriginal.ROI = Rectangle.Empty;
             }

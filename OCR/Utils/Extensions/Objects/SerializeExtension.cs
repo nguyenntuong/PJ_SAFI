@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OCR.Utils.Extensions.Objects
 {
@@ -19,7 +15,7 @@ namespace OCR.Utils.Extensions.Objects
         /// <returns></returns>
         public static byte[] Serialize(this object o)
         {
-            using (var ms = new MemoryStream())
+            using (MemoryStream ms = new MemoryStream())
             {
                 BinaryFormatter bf = new BinaryFormatter();
                 bf.Serialize(ms, o);
@@ -36,16 +32,19 @@ namespace OCR.Utils.Extensions.Objects
         /// <returns></returns>
         public static T DeSerialize<T>(this byte[] arrBytes)
         {
-            using (var memStream = new MemoryStream())
+            using (MemoryStream memStream = new MemoryStream())
             {
                 try
                 {
                     if (arrBytes == null)
+                    {
                         throw new ArgumentNullException(nameof(arrBytes));
-                    var binForm = new BinaryFormatter();
+                    }
+
+                    BinaryFormatter binForm = new BinaryFormatter();
                     memStream.Write(arrBytes, 0, arrBytes.Length);
                     memStream.Seek(0, SeekOrigin.Begin);
-                    var obj = binForm.Deserialize(memStream);
+                    object obj = binForm.Deserialize(memStream);
                     return (T)obj;
                 }
                 catch (ArgumentNullException e)

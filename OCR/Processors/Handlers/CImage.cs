@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -13,13 +11,13 @@ using OCR.Processors.Interfaces;
 
 namespace OCR.Processors.Handlers
 {
-    class CImage : ICImage, IModifyImage, IDisposable, ILazy
+    internal class CImage : ICImage, IModifyImage, IDisposable, ILazy
     {
         #region static
         /// <summary>
         /// Danh sách các định dạng ảnh hổ trợ, file
         /// </summary>
-        public readonly static IReadOnlyList<string> ImageTypeSupport = new List<string>
+        public static readonly IReadOnlyList<string> ImageTypeSupport = new List<string>
         {
             ".bmp",
             ".dib",
@@ -63,7 +61,7 @@ namespace OCR.Processors.Handlers
             switch (image)
             {
                 case Mat img:
-                    _originalImage = img.ToImage<Bgr,byte>();
+                    _originalImage = img.ToImage<Bgr, byte>();
                     break;
                 case Image<Bgr, byte> img:
                     _originalImage = img;
@@ -148,14 +146,15 @@ namespace OCR.Processors.Handlers
         /// <returns>Image<Gray,byte></returns>
         public IImage ThresholdBinary(int threshold)
         {
-            var imgThres = (GetOriginalImage() as Image<Bgr, byte>)?.Convert<Gray, byte>().ThresholdBinary(new Gray(threshold), new Gray(255));
+            Image<Gray, byte> imgThres = (GetOriginalImage() as Image<Bgr, byte>)?.Convert<Gray, byte>().ThresholdBinary(new Gray(threshold), new Gray(255));
             return imgThres;
         }
 
         // Flag: Has Dispose already been called?
-        bool disposed = false;
+        private bool disposed = false;
+
         // Instantiate a SafeHandle instance.
-        SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
+        private SafeHandle handle = new SafeFileHandle(IntPtr.Zero, true);
 
         // Public implementation of Dispose pattern callable by consumers.
         public void Dispose()
@@ -168,7 +167,9 @@ namespace OCR.Processors.Handlers
         protected virtual void Dispose(bool disposing)
         {
             if (disposed)
+            {
                 return;
+            }
 
             if (disposing)
             {
@@ -186,7 +187,10 @@ namespace OCR.Processors.Handlers
         public void Release()
         {
             if (_pathImage == null)
+            {
                 return;
+            }
+
             _originalImage = null;
             _afterProcessImage = null;
         }

@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OCR.DAO.Interfaces;
 using OCR.Models.Locals;
 using OCR.Utils.Extensions.Objects;
 
 namespace OCR.DAO.Locals
 {
-    class ROIProfilesResource : IROIProfilesResource
+    internal class ROIProfilesResource : IROIProfilesResource
     {
         #region static
         private static object _locker = new object();
@@ -46,7 +43,7 @@ namespace OCR.DAO.Locals
 
         public void AddOrUpdateRegionProfile(ROIProfile regionProfile)
         {
-            var path = Path.Combine(_path, $"{regionProfile.Name}");
+            string path = Path.Combine(_path, $"{regionProfile.Name}");
             using (BinaryWriter binary = new BinaryWriter(File.OpenWrite(path)))
             {
                 binary.Write(regionProfile.Serialize());
@@ -55,7 +52,7 @@ namespace OCR.DAO.Locals
 
         public void DeleteRegionProfile(ROIProfile regionProfile)
         {
-            var path = Path.Combine(_path, $"{regionProfile.Name}");
+            string path = Path.Combine(_path, $"{regionProfile.Name}");
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -64,7 +61,7 @@ namespace OCR.DAO.Locals
 
         public void DeleteRegionProfile(string regionProfileName)
         {
-            var path = Path.Combine(_path, $"{regionProfileName}");
+            string path = Path.Combine(_path, $"{regionProfileName}");
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -73,7 +70,7 @@ namespace OCR.DAO.Locals
 
         public ROIProfile GetRegionProfile(string regionProfileName)
         {
-            var path = Path.Combine(_path, $"{regionProfileName}");
+            string path = Path.Combine(_path, $"{regionProfileName}");
             if (!File.Exists(path))
             {
                 return null;

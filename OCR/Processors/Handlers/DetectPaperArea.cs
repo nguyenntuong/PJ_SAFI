@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -12,7 +10,7 @@ using OCR.Processors.Interfaces;
 
 namespace OCR.Processors.Handlers
 {
-    class DetectPaperArea : IDetectPaperArea
+    internal class DetectPaperArea : IDetectPaperArea
     {
         #region static
 
@@ -28,7 +26,7 @@ namespace OCR.Processors.Handlers
         }
         #endregion
         #region interface
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -38,9 +36,15 @@ namespace OCR.Processors.Handlers
         public (IImage imgOriginal, IImage imgDrawed, RotatedRect rotated) DetectAndDrawPaperArea(IImage imgmat, RotatedRect lastrotatedrect)
         {
             if (imgmat == null)
+            {
                 return (null, null, RotatedRect.Empty);
+            }
+
             if (!(imgmat is Mat mat))
+            {
                 throw new Exception("imgmat must be Mat object.");
+            }
+
             RotatedRect rotate = lastrotatedrect;
             Image<Bgr, byte> original = mat.ToImage<Bgr, byte>();
 
@@ -52,30 +56,30 @@ namespace OCR.Processors.Handlers
                 using (Image<Gray, byte> imGray = imgColor.Convert<Gray, byte>().PyrUp().PyrDown().ThresholdToZeroInv(new Gray(250)))
                 {
                     imGray._EqualizeHist();
-                    var thre = imGray.GetAverage();
+                    Gray thre = imGray.GetAverage();
                     //// Remove noise
-                    using (var imGrayAfterPyr = imGray
+                    using (Image<Gray, byte> imGrayAfterPyr = imGray
                         .ThresholdBinary(thre, new Gray(255))
                         )
                     {
                         using (VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint())
                         {
                             CvInvoke.FindContours(imGrayAfterPyr, contours, null, RetrType.List, ChainApproxMethod.ChainApproxSimple);
-                            var contourlist = Enumerable
+                            IEnumerable<VectorOfPoint> contourlist = Enumerable
                                 .Range(0, contours.Size)
                                 .Select(i => contours[i])
                                 .OrderByDescending(c => CvInvoke.ContourArea(c))
                                 .Take(5);
-                            foreach (var c in contourlist)
+                            foreach (VectorOfPoint c in contourlist)
                             {
                                 using (VectorOfPoint v = new VectorOfPoint())
                                 {
-                                    var peri = CvInvoke.ArcLength(c, true);
+                                    double peri = CvInvoke.ArcLength(c, true);
                                     CvInvoke.ApproxPolyDP(c, v, 0.1 * peri, true);
                                     if (v != null && v.ToArray().Length == 4 && CvInvoke.IsContourConvex(v))
                                     {
                                         rotate = CvInvoke.MinAreaRect(v);
-                                        var _2YMaxPoint = rotate.GetVertices().OrderByDescending(p => p.Y).Take(2).ToList();
+                                        List<PointF> _2YMaxPoint = rotate.GetVertices().OrderByDescending(p => p.Y).Take(2).ToList();
                                         bool isRotate = false;
                                         if (_2YMaxPoint[1].X > _2YMaxPoint[0].X)
                                         {
@@ -94,12 +98,16 @@ namespace OCR.Processors.Handlers
                                         if (isRotate)
                                         {
                                             if (rotate.Size.Height + 1 >= imGrayAfterPyr.Size.Width && rotate.Size.Width + 1 >= imGrayAfterPyr.Size.Height)
+                                            {
                                                 continue;
+                                            }
                                         }
                                         else
                                         {
                                             if (rotate.Size.Width + 1 >= imGrayAfterPyr.Size.Width && rotate.Size.Height + 1 >= imGrayAfterPyr.Size.Height)
+                                            {
                                                 continue;
+                                            }
                                         }
                                         isRotateRectFound = true;
                                         break;
@@ -110,7 +118,7 @@ namespace OCR.Processors.Handlers
                     }
                 }
             }
-            var imgDraw = original.Clone();
+            Image<Bgr, byte> imgDraw = original.Clone();
             if (isRotateRectFound)
             {
                 rotate = new RotatedRect()
@@ -136,15 +144,23 @@ namespace OCR.Processors.Handlers
         public IImage ExtractPaperArea(IImage imgOriginal, RotatedRect rotatedRect)
         {
             if (imgOriginal == null)
+            {
                 return null;
+            }
+
             Image<Bgr, byte> imgColor = imgOriginal as Image<Bgr, byte>;
             if (imgColor == null)
+            {
                 throw new Exception("imgmat must be Image<Bgr, byte> object.");
+            }
 
             Image<Bgr, byte> imgReturn = imgColor;
             if (rotatedRect.Size != SizeF.Empty)
+            {
                 imgReturn = imgColor.Copy(rotatedRect);
-            var _2YMaxPoint = rotatedRect.GetVertices().OrderByDescending(p => p.Y).Take(2).ToList();
+            }
+
+            List<PointF> _2YMaxPoint = rotatedRect.GetVertices().OrderByDescending(p => p.Y).Take(2).ToList();
             if (_2YMaxPoint[1].X > _2YMaxPoint[0].X)
             {
                 if (rotatedRect.Angle > 0)
@@ -164,7 +180,7 @@ namespace OCR.Processors.Handlers
 
         public IImage DetectAndExtractPaperArea(string path)
         {
-            var rs = DetectAndDrawPaperArea(new Mat(path), RotatedRect.Empty);
+            (IImage imgOriginal, IImage imgDrawed, RotatedRect rotated) rs = DetectAndDrawPaperArea(new Mat(path), RotatedRect.Empty);
             return ExtractPaperArea(rs.imgOriginal, rs.rotated);
         }
         /// <summary>
@@ -174,7 +190,7 @@ namespace OCR.Processors.Handlers
         /// <returns></returns>
         public IImage DetectAndExtractPaperArea(IImage img)
         {
-            var rs = DetectAndDrawPaperArea(img, RotatedRect.Empty);
+            (IImage imgOriginal, IImage imgDrawed, RotatedRect rotated) rs = DetectAndDrawPaperArea(img, RotatedRect.Empty);
             return ExtractPaperArea(rs.imgOriginal, rs.rotated);
         }
         #endregion

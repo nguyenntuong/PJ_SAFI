@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Emgu.CV;
 using OCR.DAO.Interfaces;
 
 namespace OCR.DAO.Locals
 {
-    class TempFilesImageResource<T> : ITempFilesResource<T> where T : IImage
+    internal class TempFilesImageResource<T> : ITempFilesResource<T> where T : IImage
     {
         #region static
         private static object _locker = new object();
@@ -44,7 +40,7 @@ namespace OCR.DAO.Locals
         #region interface
         public bool DeleteFile(string fileName)
         {
-            var path = Path.Combine(_path, fileName);
+            string path = Path.Combine(_path, fileName);
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -55,12 +51,12 @@ namespace OCR.DAO.Locals
 
         public string SaveFile(T ob)
         {
-            if(ob==null)
+            if (ob == null)
             {
                 throw new Exception("Cant save file.");
             }
-            var fileName = Path.GetRandomFileName() + ".png";
-            var path = Path.Combine(_path, fileName);
+            string fileName = Path.GetRandomFileName() + ".png";
+            string path = Path.Combine(_path, fileName);
             while (File.Exists(path))
             {
                 fileName = Path.GetRandomFileName() + ".png";
@@ -79,11 +75,15 @@ namespace OCR.DAO.Locals
 
         public string GetFullPath(string fileName)
         {
-            var path = Path.Combine(_path, fileName);
+            string path = Path.Combine(_path, fileName);
             if (File.Exists(path))
+            {
                 return path;
+            }
             else
+            {
                 return "";
+            }
         }
         #endregion
     }

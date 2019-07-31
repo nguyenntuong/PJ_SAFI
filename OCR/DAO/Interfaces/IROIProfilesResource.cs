@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using OCR.Models.Locals;
 
 namespace OCR.DAO.Interfaces
 {
-    interface IROIProfilesResource
+    internal interface IROIProfilesResource
     {
         List<string> Profiles { get; }
         void AddOrUpdateRegionProfile(ROIProfile regionProfile);

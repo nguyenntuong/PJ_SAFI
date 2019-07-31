@@ -6,15 +6,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
-using System.Xml;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
-using OCR.DAO.Locals;
 using OCR.DAO.Interfaces;
+using OCR.DAO.Locals;
 using OCR.Models.Locals;
 using OCR.Processors.Handlers;
 using OCR.Processors.Interfaces;
@@ -22,10 +20,9 @@ using OCR.Utils.Enum;
 using OCR.Utils.Extensions.Objects;
 using OCR.Utils.Extensions.Structs;
 using OCR.Utils.Extensions.UIs;
-using OCR.Views.Forms.ForTest;
-using OCR.Views.Additions.Dialogs;
 using OCR.Utils.Helpers.DriverControls;
-using System.Threading;
+using OCR.Views.Additions.Dialogs;
+using OCR.Views.Forms.ForTest;
 
 namespace OCR.Views.Forms
 {
@@ -62,10 +59,7 @@ namespace OCR.Views.Forms
         private string _scannerID;
         private string ScannerID
         {
-            get
-            {
-                return _scannerID;
-            }
+            get => _scannerID;
             set
             {
                 if (string.IsNullOrEmpty(value))
@@ -87,10 +81,7 @@ namespace OCR.Views.Forms
         private int _camIndex;
         private int CamIndex
         {
-            get
-            {
-                return _camIndex;
-            }
+            get => _camIndex;
             set
             {
                 if (value < 0)
@@ -126,7 +117,7 @@ namespace OCR.Views.Forms
         #region delegateevent
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -279,7 +270,7 @@ namespace OCR.Views.Forms
                 _pointsForDrawRect.Add(e.Location);
                 if (_pointsForDrawRect.Count == 2)
                 {
-                    using (var vector = new VectorOfPoint(_pointsForDrawRect.ToArray()))
+                    using (VectorOfPoint vector = new VectorOfPoint(_pointsForDrawRect.ToArray()))
                     {
                         Rectangle rect = CvInvoke.BoundingRectangle(vector);
                         ClearPoint();
@@ -292,7 +283,7 @@ namespace OCR.Views.Forms
                                     g.DrawRectangle(p, rect);
                                 }
                             }
-                            var imgOrginal = _images[_currentImageIndex].GetOriginalImage() as Image<Bgr, byte>;
+                            Image<Bgr, byte> imgOrginal = _images[_currentImageIndex].GetOriginalImage() as Image<Bgr, byte>;
                             imgOrginal.ROI = rect.ConvertToActualyImageSizeWithAcc(pictureBox_ScanImage).ConvertToActualyImageSizeRemoveAcc();
                             _imageSelectedRegion = imgOrginal.Copy();
                             using (Form showimg = new ShowImageForm(_imageSelectedRegion))
@@ -311,7 +302,7 @@ namespace OCR.Views.Forms
         {
             if (!_isMouseButtonRelease)
             {
-                using (var vector = new VectorOfPoint(new[] { _pointsForDrawRect[0], e.Location }))
+                using (VectorOfPoint vector = new VectorOfPoint(new[] { _pointsForDrawRect[0], e.Location }))
                 {
                     Rectangle rect = CvInvoke.BoundingRectangle(vector);
                     using (Graphics g = pictureBox_ScanImage.CreateGraphics())
@@ -378,7 +369,7 @@ namespace OCR.Views.Forms
                 MessageBox.Show("Chọn hình, hoặc thư mục chứa hình trước !", "Chưa chọn hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            var rOIProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
+            ROIProfile rOIProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
             if (!(dataGridView_Result.Tag is ROIProfile) || (dataGridView_Result.Tag as ROIProfile) != rOIProfile)
             {
                 CreateDataGridView(rOIProfile);
@@ -420,7 +411,7 @@ namespace OCR.Views.Forms
                 MessageBox.Show("Chọn hình, hoặc thư mục chứa hình trước !", "Chưa chọn hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            var rOIProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
+            ROIProfile rOIProfile = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
             if (!(dataGridView_Result.Tag is ROIProfile) || (dataGridView_Result.Tag as ROIProfile) != rOIProfile)
             {
                 CreateDataGridView(rOIProfile);
@@ -437,7 +428,7 @@ namespace OCR.Views.Forms
             }
             else
             {
-                var config = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
+                ROIProfile config = _appConfig.GetConfig<ROIProfile>("CurrentRegionProfile");
                 if (config == null || config.Name != cbb.SelectedItem.ToString().Trim())
                 {
                     _appConfig.SetConfig<ROIProfile>("CurrentRegionProfile", _regionProfiles.GetRegionProfile(cbb.SelectedItem.ToString().Trim()));
@@ -487,7 +478,10 @@ namespace OCR.Views.Forms
         private void ScanConnectToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (backgroundWorkerVideoCapture.IsBusy)
+            {
                 backgroundWorkerVideoCapture.CancelAsync();
+            }
+
             if (ScanDeviceSelectDialog.ShowCustomDialog(out string scannerid) != DialogResult.OK)
             {
                 ScannerID = "";
@@ -515,7 +509,7 @@ namespace OCR.Views.Forms
             {
                 IDetectPaperArea detectPaper = DetectPaperArea.MakeInstance();
                 _pauseVideoCapture = true;
-                var paperArea = detectPaper.ExtractPaperArea(_resultCache.imgOriginal, _resultCache.rotated);
+                IImage paperArea = detectPaper.ExtractPaperArea(_resultCache.imgOriginal, _resultCache.rotated);
                 if (paperArea == null)
                 {
                     MessageBox.Show("Không tìm thấy.", "Không thể tìm thấy khu vực nhận dạng", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -531,7 +525,10 @@ namespace OCR.Views.Forms
         private void ConnectVideoCaptureToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (backgroundWorkerVideoCapture.IsBusy)
+            {
                 backgroundWorkerVideoCapture.CancelAsync();
+            }
+
             if (CameraDeviceSelectDialog.ShowCustomDialog(out int camIndex) != DialogResult.OK)
             {
                 CamIndex = -1;
@@ -540,7 +537,7 @@ namespace OCR.Views.Forms
             CamIndex = camIndex;
             backgroundWorkerVideoCapture.RunWorkerAsync(CamIndex);
         }
-        
+
         private void Label2_MouseClick(object sender, MouseEventArgs e)
         {
             if (e?.Button == MouseButtons.Right)
@@ -666,7 +663,10 @@ namespace OCR.Views.Forms
         private void BackgroundWorkerForLoadImage_DoWork(object sender, DoWorkEventArgs e)
         {
             if (backgroundWorkerVideoCapture.IsBusy)
+            {
                 backgroundWorkerVideoCapture.CancelAsync();
+            }
+
             this.InvokeOnUIThreadASync(() =>
             {
                 toolStripStatuslabel.Text = "Loading Image...";
@@ -694,8 +694,8 @@ namespace OCR.Views.Forms
                 string fileOrDir = e.Argument as string;
                 if (fileOrDir.CheckIfIsFileAndExist())
                 {
-                    var imageImport = _importImage.ImportFromFile(fileOrDir);
-                    if (imageImport.Count()>0)
+                    IEnumerable<CImage> imageImport = _importImage.ImportFromFile(fileOrDir);
+                    if (imageImport.Count() > 0)
                     {
                         _images.AddRange(imageImport);
                     }
@@ -714,7 +714,10 @@ namespace OCR.Views.Forms
                     return;
                 }
                 if (_images.Count == 0)
+                {
                     return;
+                }
+
                 _currentImageIndex = 0;
                 this.InvokeOnUIThreadASync(() => pictureBox_ScanImage.Image = _images?[_currentImageIndex].GetOriginalImage().Bitmap);
             }
@@ -737,11 +740,17 @@ namespace OCR.Views.Forms
         private (IImage imgOriginal, IImage imgDrawed, RotatedRect rotated) _resultCache = (null, null, RotatedRect.Empty);
         private void BackgroundWorkerVideoCapture_DoWork(object sender, DoWorkEventArgs e)
         {
-            var bw = sender as BackgroundWorker;
+            BackgroundWorker bw = sender as BackgroundWorker;
             if (e.Argument == null)
+            {
                 return;
+            }
+
             if (!(e.Argument is int))
+            {
                 return;
+            }
+
             int camIndex = (int)e.Argument;
             IDetectPaperArea detectPaper = DetectPaperArea.MakeInstance();
             using (VideoCapture capture = new VideoCapture(camIndex))
@@ -827,7 +836,10 @@ namespace OCR.Views.Forms
             AnimateOCR();
             string lang = e.Argument as string;
             if (lang == null)
+            {
                 return;
+            }
+
             IOCR oCR = OCRWraper.Instance(lang);
             List<string> pages = new List<string>();
             if (_imageSelectedRegion != null)
@@ -848,7 +860,7 @@ namespace OCR.Views.Forms
             }
             this.InvokeOnUIThreadASync(() =>
             {
-                foreach (var page in pages.Select(p => new List<string> { p }))
+                foreach (List<string> page in pages.Select(p => new List<string> { p }))
                 {
                     FillDataGridViewRow(page);
                 }
@@ -860,14 +872,17 @@ namespace OCR.Views.Forms
             AnimateOCR();
             ROIProfile roiProfile = e.Argument as ROIProfile;
             if (roiProfile == null)
+            {
                 return;
+            }
+
             IOCRROI oCR = OCRWraper.DefaultInstance();
             CImage image = _images[_currentImageIndex];
             this.InvokeOnUIThreadASync(() =>
             {
                 pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
             });
-            var res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
+            List<Dictionary<string, string>> res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
             this.InvokeOnUIThreadASync(() =>
             {
                 pictureBox_ScanImage.Image = imgdrawd.Bitmap;
@@ -876,7 +891,7 @@ namespace OCR.Views.Forms
             {
                 foreach (Dictionary<string, string> row in res)
                 {
-                    var tmp = row.Select(cell => cell.Value);
+                    IEnumerable<string> tmp = row.Select(cell => cell.Value);
                     if (tmp.Any(s => string.IsNullOrWhiteSpace(s)))
                     {
                         continue;
@@ -891,7 +906,10 @@ namespace OCR.Views.Forms
             AnimateOCR();
             ROIProfile roiProfile = e.Argument as ROIProfile;
             if (roiProfile == null)
+            {
                 return;
+            }
+
             IOCRROI oCR = OCRWraper.DefaultInstance();
             List<Dictionary<string, string>> pages = new List<Dictionary<string, string>>();
             foreach (CImage image in _images)
@@ -900,7 +918,7 @@ namespace OCR.Views.Forms
                 {
                     pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
                 });
-                var res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
+                List<Dictionary<string, string>> res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
                 pages.AddRange(res);
                 this.InvokeOnUIThreadASync(() =>
                 {
@@ -910,7 +928,7 @@ namespace OCR.Views.Forms
                 {
                     foreach (Dictionary<string, string> row in res)
                     {
-                        var tmp = row.Select(cell => cell.Value);
+                        IEnumerable<string> tmp = row.Select(cell => cell.Value);
                         if (tmp.Any(s => string.IsNullOrWhiteSpace(s)))
                         {
                             continue;

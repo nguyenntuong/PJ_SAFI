@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OCR.DAO.Interfaces;
 using OCR.Models.Locals;
 using OCR.Utils.Extensions.Objects;
 
 namespace OCR.DAO.Locals
 {
-    class PaperResource : IPaperResource
+    internal class PaperResource : IPaperResource
     {
         #region static
         private static object _locker = new object();
@@ -46,7 +43,7 @@ namespace OCR.DAO.Locals
 
         public void AddOrUpdatePaperProfile(PaperProfile paperProfile)
         {
-            var path = Path.Combine(_path, $"{paperProfile.Name}");
+            string path = Path.Combine(_path, $"{paperProfile.Name}");
             using (BinaryWriter binary = new BinaryWriter(File.OpenWrite(path)))
             {
                 binary.Write(paperProfile.Serialize());
@@ -55,7 +52,7 @@ namespace OCR.DAO.Locals
 
         public void DeletePaperProfile(PaperProfile paperProfile)
         {
-            var path = Path.Combine(_path, $"{paperProfile.Name}");
+            string path = Path.Combine(_path, $"{paperProfile.Name}");
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -64,7 +61,7 @@ namespace OCR.DAO.Locals
 
         public void DeletePaperProfile(string paperProfileName)
         {
-            var path = Path.Combine(_path, paperProfileName);
+            string path = Path.Combine(_path, paperProfileName);
             if (File.Exists(path))
             {
                 File.Delete(path);
@@ -73,7 +70,7 @@ namespace OCR.DAO.Locals
 
         public PaperProfile GetPaperProfile(string paperProfileName)
         {
-            var path = Path.Combine(_path, paperProfileName);
+            string path = Path.Combine(_path, paperProfileName);
             if (!File.Exists(path))
             {
                 return null;

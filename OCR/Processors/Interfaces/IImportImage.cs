@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using OCR.Processors.Handlers;
 
 namespace OCR.Processors.Interfaces
 {
-    interface IImportImage
+    internal interface IImportImage
     {
         IEnumerable<CImage> ImportFromFolder(string path);
         IEnumerable<CImage> ImportFromFile(string path);
