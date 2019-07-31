@@ -81,6 +81,7 @@
     <Compile Include="DAO\Locals\PaperResource.cs" />
     <Compile Include="DAO\Locals\ROIProfilesResource.cs" />
     <Compile Include="DAO\Locals\TempFilesImageResource.cs" />
+    <Compile Include="DAO\Locals\TempFilesResource.cs" />
     <Compile Include="DAO\Locals\TempFilesScannerResource.cs" />
     <Compile Include="DAO\Locals\TesseractLanguages.cs" />
     <Compile Include="Libraries\Handlers\GhostScriptHandler.cs" />

@@ -2,11 +2,11 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using Emgu.CV;
-using Emgu.CV.Structure;
 using Ghostscript.NET;
 using Ghostscript.NET.Rasterizer;
+using OCR.DAO.Interfaces;
+using OCR.DAO.Locals;
 using OCR.Libraries.Handlers;
 using OCR.Processors.Interfaces;
 
@@ -41,6 +41,9 @@ namespace OCR.Processors.Handlers
         }
         #endregion
         #region instance
+        #region dependencyinjection
+        private readonly ITempFilesResource _tempFiles = TempFilesResource.DefaultInstance();
+        #endregion
         private GhostscriptVersionInfo _ghostScript = GhostScriptHandler.GhostScriptVersion;
 
         private Pdf2Image()
@@ -62,14 +65,13 @@ namespace OCR.Processors.Handlers
                     List<IImage> imgs = new List<IImage>();
                     for (int i = 1; i <= rasterizer.PageCount; i++)
                     {
-                        using (MemoryStream memoryStream = new MemoryStream())
+                        using (Image pdf2PNG = rasterizer.GetPage(300, 300, i))
                         {
-                            Image pdf2PNG = rasterizer.GetPage(300, 300, i);
-                            pdf2PNG.Save(memoryStream, ImageFormat.Png);
-                            using (Bitmap bmp = new Bitmap(memoryStream))
-                            {
-                                imgs.Add(new Image<Bgr, byte>(bmp).Mat);
-                            }
+                            string tmpFileName = _tempFiles.PrepateFileLocation();
+                            string fullPath = _tempFiles.GetFullPath(tmpFileName);
+                            pdf2PNG.Save(fullPath, ImageFormat.Png);
+                            imgs.Add(new Mat(fullPath));
+                            _tempFiles.DeleteFile(tmpFileName);
                         }
                     }
                     return imgs;
