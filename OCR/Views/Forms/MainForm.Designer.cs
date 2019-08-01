@@ -82,6 +82,8 @@
             this.backgroundWorkerVideoCapture = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorkerForOCRROISingleImage = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorkerForOCRROIAllImage = new System.ComponentModel.BackgroundWorker();
+            this.stopProgressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.btn_Cancel = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.imageBoxPanel.SuspendLayout();
@@ -118,6 +120,7 @@
             this.toolStripSeparator1,
             this.kêtNôiThiêtSbijGhiHinhToolStripMenuItem,
             this.scanConnectToolStripMenuItem,
+            this.stopProgressToolStripMenuItem,
             this.toolStripSeparator,
             this.saveAsToolStripMenuItem,
             this.toolStripSeparator2,
@@ -320,6 +323,7 @@
             this.btn_Scan.TabIndex = 0;
             this.btn_Scan.Text = "Scan/Capture";
             this.btn_Scan.UseVisualStyleBackColor = true;
+            this.btn_Scan.EnabledChanged += new System.EventHandler(this.Btn_Scan_EnabledChanged);
             this.btn_Scan.Click += new System.EventHandler(this.Btn_Scan_Click);
             // 
             // btn_Next
@@ -506,6 +510,7 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.btn_Cancel);
             this.panel2.Controls.Add(this.btn_ClearResult);
             this.panel2.Controls.Add(this.btn_ExtractBaseOnROIProfile);
             this.panel2.Controls.Add(this.btn_ExtractCurrentImageBaseOnRegionProfile);
@@ -527,11 +532,11 @@
             this.btn_ClearResult.UseVisualStyleBackColor = true;
             this.btn_ClearResult.Click += new System.EventHandler(this.btnClearTxt_Click);
             // 
-            // btn_ExtractBaseOnRegionProfile
+            // btn_ExtractBaseOnROIProfile
             // 
             this.btn_ExtractBaseOnROIProfile.Enabled = false;
             this.btn_ExtractBaseOnROIProfile.Location = new System.Drawing.Point(249, 3);
-            this.btn_ExtractBaseOnROIProfile.Name = "btn_ExtractBaseOnRegionProfile";
+            this.btn_ExtractBaseOnROIProfile.Name = "btn_ExtractBaseOnROIProfile";
             this.btn_ExtractBaseOnROIProfile.Size = new System.Drawing.Size(131, 37);
             this.btn_ExtractBaseOnROIProfile.TabIndex = 2;
             this.btn_ExtractBaseOnROIProfile.Text = "Trích xuất tất cả ảnh theo cấu hình";
@@ -579,16 +584,19 @@
             // 
             // backgroundWorkerForOCRFullCharacterOrROI
             // 
+            this.backgroundWorkerForOCRFullCharacterOrROI.WorkerSupportsCancellation = true;
             this.backgroundWorkerForOCRFullCharacterOrROI.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerForOCRFullCharacterOrROI_DoWork);
             this.backgroundWorkerForOCRFullCharacterOrROI.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
             // 
             // backgroundWorkerForLoadImage
             // 
+            this.backgroundWorkerForLoadImage.WorkerSupportsCancellation = true;
             this.backgroundWorkerForLoadImage.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForLoadImage_DoWork);
             this.backgroundWorkerForLoadImage.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundWorkerForLoadImage_RunWorkerCompleted);
             // 
             // backgroundWorkerForScan
             // 
+            this.backgroundWorkerForScan.WorkerSupportsCancellation = true;
             this.backgroundWorkerForScan.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForScanner_DoWork);
             this.backgroundWorkerForScan.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.BackgroundWorkerForScanner_RunWorkerCompleted);
             // 
@@ -600,13 +608,33 @@
             // 
             // backgroundWorkerForOCRROISingleImage
             // 
+            this.backgroundWorkerForOCRROISingleImage.WorkerSupportsCancellation = true;
             this.backgroundWorkerForOCRROISingleImage.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForOCRROISingleImage_DoWork);
             this.backgroundWorkerForOCRROISingleImage.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
             // 
             // backgroundWorkerForOCRROIAllImage
             // 
+            this.backgroundWorkerForOCRROIAllImage.WorkerSupportsCancellation = true;
             this.backgroundWorkerForOCRROIAllImage.DoWork += new System.ComponentModel.DoWorkEventHandler(this.BackgroundWorkerForOCRROIAllImage_DoWork);
             this.backgroundWorkerForOCRROIAllImage.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorkerForOCR_RunWorkerCompleted);
+            // 
+            // stopProgressToolStripMenuItem
+            // 
+            this.stopProgressToolStripMenuItem.Name = "stopProgressToolStripMenuItem";
+            this.stopProgressToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
+            this.stopProgressToolStripMenuItem.Text = "&Dừng tiến trình";
+            this.stopProgressToolStripMenuItem.Click += new System.EventHandler(this.StopProgressToolStripMenuItem_Click);
+            // 
+            // btn_Cancel
+            // 
+            this.btn_Cancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_Cancel.Location = new System.Drawing.Point(481, 5);
+            this.btn_Cancel.Name = "btn_Cancel";
+            this.btn_Cancel.Size = new System.Drawing.Size(90, 33);
+            this.btn_Cancel.TabIndex = 0;
+            this.btn_Cancel.Text = "Hủy thao tác";
+            this.btn_Cancel.UseVisualStyleBackColor = true;
+            this.btn_Cancel.Click += new System.EventHandler(this.Btn_Cancel_Click);
             // 
             // MainForm
             // 
@@ -700,6 +728,8 @@
         private System.ComponentModel.BackgroundWorker backgroundWorkerVideoCapture;
         private System.ComponentModel.BackgroundWorker backgroundWorkerForOCRROISingleImage;
         private System.ComponentModel.BackgroundWorker backgroundWorkerForOCRROIAllImage;
+        private System.Windows.Forms.ToolStripMenuItem stopProgressToolStripMenuItem;
+        private System.Windows.Forms.Button btn_Cancel;
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using OCR.DAO.Interfaces;
 using OCR.DAO.Locals;
@@ -54,12 +55,12 @@ namespace OCR.Utils.Helpers.DriverControls
         /// Use scanner to scan an image (with user selecting the scanner from a dialog).
         /// </summary>
         /// <returns>Scanned images path.</returns>
-        public static List<string> Scan()
+        public static List<string> Scan(DoWorkEventArgs e)
         {
             Device device = SelectDevice();
             if (device != null)
             {
-                return Scan(device.DeviceID);
+                return Scan(device.DeviceID, e);
             }
 
             return null;
@@ -69,16 +70,16 @@ namespace OCR.Utils.Helpers.DriverControls
         /// </summary>
         /// <param name="scannerName"></param>
         /// <returns>Scanned images path.</returns>
-        public static List<string> Scan(string scannerId)
+        public static List<string> Scan(string scannerId, DoWorkEventArgs e)
         {
             List<string> images = new List<string>();
             bool hasMorePages = true;
-            while (hasMorePages)
+            ITempFilesResource<ImageFile> tempFiles = TempFilesScannerResource<ImageFile>.DefaultInstance();
+            while (hasMorePages && !e.Cancel)
             {
                 // select the correct scanner using the provided scannerId parameter
                 WIA.DeviceManager manager = new WIA.DeviceManager();
                 WIA.Device device = null;
-                ITempFilesResource<ImageFile> tempFiles = TempFilesScannerResource<ImageFile>.DefaultInstance();
                 foreach (WIA.DeviceInfo info in manager.DeviceInfos)
                 {
                     if (info.DeviceID == scannerId)
@@ -153,7 +154,17 @@ namespace OCR.Utils.Helpers.DriverControls
                     }
                 }
             }
-            return images;
+            if (!e.Cancel)
+                return images;
+            else
+            {
+                foreach (var image in images)
+                {
+                    tempFiles.DeleteFile(image);
+                }
+                images.Clear();
+                return images;
+            }
         }
         /// <summary>
         /// Gets the list of available WIA devices.

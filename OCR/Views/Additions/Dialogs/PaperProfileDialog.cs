@@ -12,14 +12,18 @@ namespace OCR.Views.Additions.Dialogs
         #region static
         public static DialogResult ShowCustomDialog()
         {
-            PaperProfileDialog dialog = new PaperProfileDialog();
-            return dialog.ShowDialog();
+            using (PaperProfileDialog dialog = new PaperProfileDialog())
+            {
+                return dialog.ShowDialog();
+            }
         }
 
         public static DialogResult ShowCustomDialog(PaperProfile paperProfile)
         {
-            PaperProfileDialog dialog = new PaperProfileDialog(paperProfile);
-            return dialog.ShowDialog();
+            using (PaperProfileDialog dialog = new PaperProfileDialog(paperProfile))
+            {
+                return dialog.ShowDialog();
+            }
         }
         #endregion
         #region instance

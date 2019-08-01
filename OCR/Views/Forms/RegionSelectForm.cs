@@ -78,6 +78,8 @@ namespace OCR.Views.Forms
         /// </summary>
         private List<Point> _pointsForDrawRect = new List<Point>(2);
 
+        private bool _modeCreateNew = false;
+
         public RegionSelectForm()
         {
             InitializeComponent();
@@ -352,6 +354,7 @@ namespace OCR.Views.Forms
                 lstBoxRectangles.UpdateUI(_regions);
                 MessageBox.Show("Đã lưu lại thành công.", "Thông báo.", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+            _modeCreateNew = false;
         }
 
         private void ThoátToolStripMenuItem_Click(object sender, EventArgs e)
@@ -392,6 +395,7 @@ namespace OCR.Views.Forms
 
         private void ToolStrip_btnClearAll_Click(object sender, EventArgs e)
         {
+            _modeCreateNew = true;
             btn_Save.Enabled = false;
             ListBox lst = lstBoxRectangles;
             CurrentRegionProfile = null;
@@ -538,6 +542,8 @@ namespace OCR.Views.Forms
         /// </summary>
         private void ValidateProfileWithSampleImage(bool fromCbb = false)
         {
+            if (_modeCreateNew)
+                return;
             if (CurrentRegionProfile == null && cbb_RegionProfile.SelectedItem != null)
             {
                 CurrentRegionProfile = _roiProfiles.GetRegionProfile(cbb_RegionProfile.SelectedItem.ToString());

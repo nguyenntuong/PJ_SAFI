@@ -12,11 +12,12 @@ namespace OCR.Views.Additions.Dialogs
         #region static
         public static DialogResult ShowCustomDialog(ROIProfile profile)
         {
-            ProfileSaveDialog dialog = new ProfileSaveDialog(profile);
-            return dialog.ShowDialog();
+            using (ProfileSaveDialog dialog = new ProfileSaveDialog(profile))
+            {
+                return dialog.ShowDialog();
+            }
         }
         #endregion
-
         #region instance
         #region dependencyinjection
         private readonly IROIProfilesResource _roiProfiles = ROIProfilesResource.DefaultInstance();

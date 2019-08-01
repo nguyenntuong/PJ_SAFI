@@ -50,6 +50,8 @@ namespace OCR.Processors.Handlers
         {
 
         }
+        #endregion
+        #region interface
         /// <summary>
         /// 
         /// </summary>

@@ -14,8 +14,10 @@ namespace OCR.Views.Additions.Dialogs
         #region static
         public static DialogResult ShowCustomDialog(List<ROI> currentList, ROI region)
         {
-            AddRegionDialog form = new AddRegionDialog(currentList, region);
-            return form.ShowDialog();
+            using (AddRegionDialog form = new AddRegionDialog(currentList, region))
+            {
+                return form.ShowDialog();
+            }
         }
         #endregion
         #region instance

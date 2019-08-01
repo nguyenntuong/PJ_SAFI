@@ -9,9 +9,11 @@ namespace OCR.Views.Additions.Dialogs
         #region static
         public static CustomDialogResult ShowCustomDialog()
         {
-            SelectFromDialog dialog = new SelectFromDialog();
-            _ = dialog.ShowDialog();
-            return dialog._selectResult;
+            using (SelectFromDialog dialog = new SelectFromDialog())
+            {
+                _ = dialog.ShowDialog();
+                return dialog._selectResult;
+            }
         }
 
         #endregion

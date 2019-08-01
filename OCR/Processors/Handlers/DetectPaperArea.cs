@@ -50,10 +50,10 @@ namespace OCR.Processors.Handlers
 
             bool isRotateRectFound = false;
             float factor = 1000f / Math.Max(mat.Width, mat.Height);
-            using (Image<Bgr, byte> imgColor = original.Resize(factor, Inter.Linear))
+            using (Image<Bgr, byte> imgColor = original.Resize(factor, Inter.Cubic))
             {
                 /// Convert to Gray image and try to make edges more distinct
-                using (Image<Gray, byte> imGray = imgColor.Convert<Gray, byte>().PyrUp().PyrDown().ThresholdToZeroInv(new Gray(250)))
+                using (Image<Gray, byte> imGray = imgColor.Convert<Gray, byte>().PyrUp().PyrDown().ThresholdToZeroInv(new Gray(240)))
                 {
                     imGray._EqualizeHist();
                     Gray thre = imGray.GetAverage();

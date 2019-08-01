@@ -23,6 +23,7 @@ using OCR.Utils.Extensions.UIs;
 using OCR.Utils.Helpers.DriverControls;
 using OCR.Views.Additions.Dialogs;
 using OCR.Views.Forms.ForTest;
+using WIA;
 
 namespace OCR.Views.Forms
 {
@@ -115,6 +116,30 @@ namespace OCR.Views.Forms
         }
 
         #region delegateevent
+
+
+        private void Btn_Cancel_Click(object sender, EventArgs e)
+        {
+            if (backgroundWorkerForOCRFullCharacterOrROI.IsBusy)
+            {
+                backgroundWorkerForOCRFullCharacterOrROI.CancelAsync();
+            }
+            if (backgroundWorkerForOCRROIAllImage.IsBusy)
+            {
+                backgroundWorkerForOCRROIAllImage.CancelAsync();
+            }
+            if (backgroundWorkerForOCRROISingleImage.IsBusy)
+            {
+                backgroundWorkerForOCRROISingleImage.CancelAsync();
+            }
+        }
+
+        private void StopProgressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (backgroundWorkerVideoCapture.IsBusy)
+                backgroundWorkerVideoCapture.CancelAsync();
+        }
+
         private void ExitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
@@ -228,8 +253,8 @@ namespace OCR.Views.Forms
         {
             using (SaveFileDialog saveFile = new SaveFileDialog
             {
-                Filter = "*.txt|Text File",
-                DefaultExt = ".txt"
+                Filter = "(*.txt)|*.txt|(*.csv)|*.csv",
+                DefaultExt = "txt"
             })
             {
                 if (saveFile.ShowDialog() != DialogResult.OK)
@@ -238,7 +263,13 @@ namespace OCR.Views.Forms
                 }
 
                 StreamWriter streamWriter = new StreamWriter(File.OpenWrite(saveFile.FileName));
-                for (int rid = 0; rid < dataGridView_Result.Rows.Count; rid++)
+                for (int i = 0; i < dataGridView_Result.Columns.Count; i++)
+                {
+                    var col = dataGridView_Result.Columns[i];
+                    streamWriter.Write($"{col.Name?.ToString().Replace("\n", "")},");
+                }
+                streamWriter.WriteLine();
+                for (int rid = 0; rid < dataGridView_Result.Rows.Count - 1; rid++)
                 {
                     DataGridViewCellCollection cells = dataGridView_Result.Rows[rid].Cells;
                     for (int cid = 0; cid < cells.Count; cid++)
@@ -248,8 +279,11 @@ namespace OCR.Views.Forms
                     streamWriter.WriteLine();
                 }
                 streamWriter.Close();
-                MessageBox.Show("Lưu thành công.", "Thành công!");
-                Process.Start(saveFile.FileName);
+                var res = MessageBox.Show("Lưu thành công.\nCó muốn mở ngay.", "Thành công!", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                if (res == DialogResult.Yes)
+                {
+                    Process.Start(saveFile.FileName);
+                }
             }
         }
 
@@ -746,12 +780,10 @@ namespace OCR.Views.Forms
                 return;
             }
 
-            if (!(e.Argument is int))
+            if (!(e.Argument is int camIndex))
             {
                 return;
             }
-
-            int camIndex = (int)e.Argument;
             IDetectPaperArea detectPaper = DetectPaperArea.MakeInstance();
             using (VideoCapture capture = new VideoCapture(camIndex))
             {
@@ -793,6 +825,7 @@ namespace OCR.Views.Forms
             _pauseVideoCapture = false;
             btn_Scan.Text = "Scan/Capture";
             btn_Scan.Enabled = false;
+            pictureBox_ScanImage.Image = null;
         }
 
         private void BackgroundWorkerForScanner_DoWork(object sender, DoWorkEventArgs e)
@@ -809,8 +842,10 @@ namespace OCR.Views.Forms
                 pictureBox_ScanImage.Enabled = false;
                 EnableCommonButton(false);
             });
+            ITempFilesResource<ImageFile> tempFiles = TempFilesScannerResource<ImageFile>.DefaultInstance();
             _images.Clear();
-            _images.AddRange(WIAScannerControl.Scan(ScannerID).Select(f => new CImage(f)));
+            // maybe not working
+            _images.AddRange(WIAScannerControl.Scan(ScannerID, e).Select(f => new CImage(tempFiles.GetFullPath(f))));
             if (_images.Count > 0)
             {
                 _currentImageIndex = 0;
@@ -834,12 +869,11 @@ namespace OCR.Views.Forms
         private void backgroundWorkerForOCRFullCharacterOrROI_DoWork(object sender, DoWorkEventArgs e)
         {
             AnimateOCR();
-            string lang = e.Argument as string;
-            if (lang == null)
+            if (!(e.Argument is string lang))
             {
                 return;
             }
-
+            BackgroundWorker bw = sender as BackgroundWorker;
             IOCR oCR = OCRWraper.Instance(lang);
             List<string> pages = new List<string>();
             if (_imageSelectedRegion != null)
@@ -850,6 +884,10 @@ namespace OCR.Views.Forms
             {
                 foreach (CImage image in _images)
                 {
+                    if (bw.CancellationPending)
+                    {
+                        break;
+                    }
                     this.InvokeOnUIThreadASync(() =>
                     {
                         pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
@@ -870,12 +908,12 @@ namespace OCR.Views.Forms
         private void BackgroundWorkerForOCRROISingleImage_DoWork(object sender, DoWorkEventArgs e)
         {
             AnimateOCR();
-            ROIProfile roiProfile = e.Argument as ROIProfile;
-            if (roiProfile == null)
+            if (!(e.Argument is ROIProfile roiProfile))
             {
                 return;
             }
 
+            BackgroundWorker bw = sender as BackgroundWorker;
             IOCRROI oCR = OCRWraper.DefaultInstance();
             CImage image = _images[_currentImageIndex];
             this.InvokeOnUIThreadASync(() =>
@@ -883,6 +921,10 @@ namespace OCR.Views.Forms
                 pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
             });
             List<Dictionary<string, string>> res = oCR.GetUtf8TextBaseOnRegions(image, roiProfile, out IImage imgdrawd);
+            if (bw.CancellationPending)
+            {
+                return;
+            }
             this.InvokeOnUIThreadASync(() =>
             {
                 pictureBox_ScanImage.Image = imgdrawd.Bitmap;
@@ -904,16 +946,20 @@ namespace OCR.Views.Forms
         private void BackgroundWorkerForOCRROIAllImage_DoWork(object sender, DoWorkEventArgs e)
         {
             AnimateOCR();
-            ROIProfile roiProfile = e.Argument as ROIProfile;
-            if (roiProfile == null)
+            if (!(e.Argument is ROIProfile roiProfile))
             {
                 return;
             }
 
+            BackgroundWorker bw = sender as BackgroundWorker;
             IOCRROI oCR = OCRWraper.DefaultInstance();
             List<Dictionary<string, string>> pages = new List<Dictionary<string, string>>();
             foreach (CImage image in _images)
             {
+                if (bw.CancellationPending)
+                {
+                    break;
+                }
                 this.InvokeOnUIThreadASync(() =>
                 {
                     pictureBox_ScanImage.Image = image.GetOriginalImage().Bitmap;
@@ -960,5 +1006,12 @@ namespace OCR.Views.Forms
 
         #endregion
 
+        private void Btn_Scan_EnabledChanged(object sender, EventArgs e)
+        {
+            if ((sender as Button).Enabled)
+            {
+                ActiveControl = (sender as Button);
+            }
+        }
     }
 }

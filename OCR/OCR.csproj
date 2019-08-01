@@ -207,6 +207,9 @@
     <EmbeddedResource Include="Views\Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Views\Forms\RegionSelectForm.resx">
+      <DependentUpon>RegionSelectForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="OCR.ruleset" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

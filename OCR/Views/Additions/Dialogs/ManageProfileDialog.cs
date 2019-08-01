@@ -13,8 +13,10 @@ namespace OCR.Views.Additions.Dialogs
         #region static
         public static DialogResult ShowCustomDialog()
         {
-            ManageProfileDialog dialog = new ManageProfileDialog();
-            return dialog.ShowDialog();
+            using (ManageProfileDialog dialog = new ManageProfileDialog())
+            {
+                return dialog.ShowDialog();
+            }
         }
         #endregion
         #region instance
